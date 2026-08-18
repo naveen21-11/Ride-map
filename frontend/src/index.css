@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark text-gray-100 font-sans antialiased;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-slate-panel/80 backdrop-blur-glass border border-white/10 rounded-xl shadow-xl;
+  }
+
+  .btn-primary {
+    @apply bg-emerald-primary hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-teal-secondary/20 hover:bg-teal-secondary/40 text-teal-secondary border border-teal-secondary/30 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .btn-accent {
+    @apply bg-amber-accent/20 hover:bg-amber-accent/40 text-amber-accent border border-amber-accent/30 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-dark/60 border border-white/10 rounded-lg px-4 py-2.5 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-primary/50 focus:border-emerald-primary/50 transition-all;
+  }
+
+  .data-mono {
+    @apply font-mono text-sm tracking-wide;
+  }
+}
+
+.leaflet-container {
+  background: #030712 !important;
+  font-family: 'Inter', sans-serif;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px !important;
+  color: #f3f4f6 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+.leaflet-popup-close-button {
+  color: #9ca3af !important;
+}
+
+.custom-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+@keyframes celebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.celebrate {
+  animation: celebrate 0.5s ease-in-out;
+}
