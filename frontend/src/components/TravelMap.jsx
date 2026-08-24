@@ -237,7 +237,29 @@ export default function TravelMap() {
     }
   };
 
-  const tile = TILE_LAYERS[tileKey];
+  const tile = TILE_LAYERS[tileKey] || TILE_LAYERS.googleSat || TILE_LAYERS.darkVoyager || { url: 'https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', attribution: '&copy; Google Maps' };
+
+  const isValidUserPos = Array.isArray(userPos) && userPos.length === 2 && !isNaN(userPos[0]) && !isNaN(userPos[1])
+    ? [parseFloat(userPos[0]), parseFloat(userPos[1])]
+    : [20.5937, 78.9629];
+
+  const isValidFlyTarget = Array.isArray(flyTarget) && flyTarget.length === 2 && !isNaN(flyTarget[0]) && !isNaN(flyTarget[1])
+    ? [parseFloat(flyTarget[0]), parseFloat(flyTarget[1])]
+    : null;
+
+  const isValidSelected = selected && !isNaN(parseFloat(selected.lat)) && !isNaN(parseFloat(selected.lng));
+
+  const validPins = pins.filter(
+    (pin) => pin && !isNaN(parseFloat(pin.latitude)) && !isNaN(parseFloat(pin.longitude))
+  );
+
+  const validPumps = pumps.filter(
+    (p) => p && !isNaN(parseFloat(p.lat)) && !isNaN(parseFloat(p.lng))
+  );
+
+  const validHospitals = hospitals.filter(
+    (h) => h && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng))
+  );
 
   return (
     <div className="relative h-[calc(100vh-5rem)] lg:h-[calc(100vh-1.5rem)] rounded-xl overflow-hidden border border-white/10">
@@ -327,7 +349,7 @@ export default function TravelMap() {
                 <p className="text-sm text-gray-300">{selected.weather}</p>
               </div>
 
-              <p className="data-mono text-xs text-gray-600">{selected.lat.toFixed(5)}, {selected.lng.toFixed(5)}</p>
+              <p className="data-mono text-xs text-gray-600">{parseFloat(selected.lat).toFixed(5)}, {parseFloat(selected.lng).toFixed(5)}</p>
 
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => savePin('BUCKET_LIST')} className="btn-accent text-sm flex items-center gap-1">
@@ -355,17 +377,17 @@ export default function TravelMap() {
         </div>
       )}
 
-      <MapContainer center={userPos} zoom={6} className="h-full w-full" zoomControl={false}>
-        <TileLayer url={tile.url} attribution={tile.attribution} />
-        <FlyTo position={flyTarget} />
+      <MapContainer center={isValidUserPos} zoom={6} className="h-full w-full" zoomControl={false}>
+        {tile?.url && <TileLayer url={tile.url} attribution={tile.attribution || ''} />}
+        <FlyTo position={isValidFlyTarget} />
         <MapClickHandler onClick={handleMapClick} />
 
-        <Marker position={userPos} icon={DEFAULT_MARKER_ICON}>
+        <Marker position={isValidUserPos} icon={DEFAULT_MARKER_ICON}>
           <Popup>You are here</Popup>
         </Marker>
 
-        {selected && (
-          <Marker position={[selected.lat, selected.lng]} icon={SELECTED_MARKER_ICON}>
+        {isValidSelected && (
+          <Marker position={[parseFloat(selected.lat), parseFloat(selected.lng)]} icon={SELECTED_MARKER_ICON}>
             <Popup defaultOpen>
               <div className="space-y-1 text-center min-w-[160px]">
                 <strong className="text-emerald-primary font-bold">{selected.name}</strong>
@@ -376,16 +398,16 @@ export default function TravelMap() {
           </Marker>
         )}
 
-        {pins.map((pin) => (
+        {validPins.map((pin) => (
           <Marker
             key={pin.id}
-            position={[pin.latitude, pin.longitude]}
+            position={[parseFloat(pin.latitude), parseFloat(pin.longitude)]}
             icon={pin.pin_type === 'VISITED' ? VISITED_ICON : DEFAULT_MARKER_ICON}
           >
             <Popup>
               <div className="space-y-2 min-w-[180px]">
                 <strong>{pin.name}</strong>
-                <p className="text-xs text-gray-400">{pin.pin_type.replace('_', ' ')}</p>
+                <p className="text-xs text-gray-400">{pin.pin_type?.replace('_', ' ') || 'PIN'}</p>
                 {pin.pin_type === 'BUCKET_LIST' && (
                   <button
                     onClick={() => handleMarkVisited(pin.id)}
@@ -399,26 +421,26 @@ export default function TravelMap() {
           </Marker>
         ))}
 
-        {showPumps && pumps.map((p) => (
-          <Marker key={`p-${p.id}`} position={[p.lat, p.lng]} icon={DEFAULT_MARKER_ICON}>
+        {showPumps && validPumps.map((p) => (
+          <Marker key={`p-${p.id}`} position={[parseFloat(p.lat), parseFloat(p.lng)]} icon={DEFAULT_MARKER_ICON}>
             <Popup>
               <div className="space-y-1">
                 <strong>⛽ {p.name}</strong>
                 <p className="text-xs">Brand: {p.brand}</p>
-                <p className="data-mono text-xs">{haversineKm(userPos[0], userPos[1], p.lat, p.lng).toFixed(1)} KM away</p>
+                <p className="data-mono text-xs">{haversineKm(isValidUserPos[0], isValidUserPos[1], parseFloat(p.lat), parseFloat(p.lng)).toFixed(1)} KM away</p>
                 <a href={googleMapsNavUrl(p.lat, p.lng)} target="_blank" rel="noreferrer" className="text-emerald-primary text-xs underline">Navigate →</a>
               </div>
             </Popup>
           </Marker>
         ))}
 
-        {showHospitals && hospitals.map((h) => (
-          <Marker key={`h-${h.id}`} position={[h.lat, h.lng]} icon={DEFAULT_MARKER_ICON}>
+        {showHospitals && validHospitals.map((h) => (
+          <Marker key={`h-${h.id}`} position={[parseFloat(h.lat), parseFloat(h.lng)]} icon={DEFAULT_MARKER_ICON}>
             <Popup>
               <div className="space-y-1">
                 <strong>🏥 {h.name}</strong>
                 <p className="text-xs">Emergency: {h.phone}</p>
-                <p className="data-mono text-xs">{haversineKm(userPos[0], userPos[1], h.lat, h.lng).toFixed(1)} KM away</p>
+                <p className="data-mono text-xs">{haversineKm(isValidUserPos[0], isValidUserPos[1], parseFloat(h.lat), parseFloat(h.lng)).toFixed(1)} KM away</p>
                 <a href={googleMapsNavUrl(h.lat, h.lng)} target="_blank" rel="noreferrer" className="text-blue-400 text-xs underline">Navigate →</a>
               </div>
             </Popup>

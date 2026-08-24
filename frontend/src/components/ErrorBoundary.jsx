@@ -29,7 +29,11 @@ export class ErrorBoundary extends React.Component {
                         </p>
                         <button
                             onClick={() => {
-                                this.setState({ hasError: false });
+                                try {
+                                    localStorage.removeItem('ridemap_pins');
+                                    localStorage.removeItem('ridemap_rides');
+                                } catch { }
+                                this.setState({ hasError: false, error: null });
                                 window.location.href = '/';
                             }}
                             className="btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2"
