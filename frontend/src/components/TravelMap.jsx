@@ -36,6 +36,16 @@ const PUMP_ICON = DEFAULT_MARKER_ICON;
 const HOSPITAL_ICON = DEFAULT_MARKER_ICON;
 const VISITED_ICON = DEFAULT_MARKER_ICON;
 
+const SELECTED_MARKER_ICON = L.icon({
+  iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
 function FlyTo({ position }) {
   const map = useMap();
   useEffect(() => {
@@ -103,6 +113,7 @@ export default function TravelMap() {
   };
 
   const handleMapClick = useCallback(async (lat, lng) => {
+    setFlyTarget([lat, lng]);
     setLoading(true);
     try {
       const geo = await reverseGeocode(lat, lng).catch(() => ({
@@ -352,6 +363,18 @@ export default function TravelMap() {
         <Marker position={userPos} icon={DEFAULT_MARKER_ICON}>
           <Popup>You are here</Popup>
         </Marker>
+
+        {selected && (
+          <Marker position={[selected.lat, selected.lng]} icon={SELECTED_MARKER_ICON}>
+            <Popup defaultOpen>
+              <div className="space-y-1 text-center min-w-[160px]">
+                <strong className="text-emerald-primary font-bold">{selected.name}</strong>
+                <p className="text-xs text-gray-300">{selected.state}, {selected.country}</p>
+                <p className="data-mono text-xs text-amber-accent font-semibold">{selected.distance_km} KM from you</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {pins.map((pin) => (
           <Marker
