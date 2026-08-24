@@ -60,7 +60,7 @@ function MapClickHandler({ onClick }) {
 }
 
 export default function TravelMap() {
-  const [tileKey, setTileKey] = useState('darkVoyager');
+  const [tileKey, setTileKey] = useState('googleSat');
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [flyTarget, setFlyTarget] = useState(null);
