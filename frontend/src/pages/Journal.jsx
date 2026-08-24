@@ -233,7 +233,11 @@ export default function Journal() {
               {pin.distance_km && <p className="data-mono text-sm text-gray-400">{pin.distance_km} KM from home</p>}
               {pin.weather && <p className="text-sm text-gray-400">{pin.weather}</p>}
               {pin.notes && <p className="text-sm text-gray-300 italic">{pin.notes}</p>}
-              <p className="data-mono text-xs text-gray-600">{pin.latitude?.toFixed(4)}, {pin.longitude?.toFixed(4)}</p>
+              {pin.latitude && pin.longitude && (
+                <p className="data-mono text-xs text-gray-600">
+                  {parseFloat(pin.latitude).toFixed(4)}, {parseFloat(pin.longitude).toFixed(4)}
+                </p>
+              )}
 
               <div className="flex gap-2 pt-2">
                 {pin.pin_type === 'BUCKET_LIST' && (

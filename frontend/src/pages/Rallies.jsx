@@ -262,7 +262,7 @@ export default function Rallies() {
                         <div className="p-1 space-y-1 text-xs">
                           <strong className="text-sm text-emerald-primary">🏍️ {m.rider?.username || 'Rider'}</strong>
                           <p className="text-gray-600">Speed: {m.speed_kmh || '40.0'} km/h</p>
-                          <p className="data-mono text-gray-500">{m.latitude?.toFixed(4)}, {m.longitude?.toFixed(4)}</p>
+                          <p className="data-mono text-gray-500">{parseFloat(m.latitude || 0).toFixed(4)}, {parseFloat(m.longitude || 0).toFixed(4)}</p>
                           <a
                             href={googleMapsNavUrl(m.latitude, m.longitude)}
                             target="_blank"
@@ -340,9 +340,9 @@ export default function Rallies() {
                   {ride.members.map((m) => (
                     <div key={m.id} className="flex items-center justify-between bg-dark/40 rounded-lg px-3 py-2 text-sm">
                       <span>🏍️ {m.rider?.username || 'Rider'}</span>
-                      {m.latitude ? (
+                      {m.latitude && m.longitude ? (
                         <span className="data-mono text-xs text-teal-secondary flex items-center gap-1">
-                          <Gauge className="w-3 h-3" /> {m.speed_kmh || '0'} km/h | {m.latitude?.toFixed(3)}, {m.longitude?.toFixed(3)}
+                          <Gauge className="w-3 h-3" /> {m.speed_kmh || '0'} km/h | {parseFloat(m.latitude).toFixed(3)}, {parseFloat(m.longitude).toFixed(3)}
                         </span>
                       ) : (
                         <span className="text-xs text-gray-600">No GPS signal</span>
