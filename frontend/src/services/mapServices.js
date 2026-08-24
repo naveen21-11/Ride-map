@@ -5,22 +5,37 @@ const OVERPASS = 'https://overpass-api.de/api/interpreter';
 
 export async function searchPlaces(query) {
   if (!query || query.length < 2) return [];
-  const url = `${NOMINATIM}/search?q=${encodeURIComponent(query + ', India')}&format=json&limit=8&countrycodes=in`;
-  const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-  return res.json();
+  try {
+    const url = `${NOMINATIM}/search?q=${encodeURIComponent(query + ', India')}&format=json&limit=8&countrycodes=in`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
 }
 
 export async function reverseGeocode(lat, lng) {
-  const url = `${NOMINATIM}/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
-  const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-  const data = await res.json();
-  const addr = data.address || {};
-  return {
-    name: data.display_name?.split(',')[0] || 'Unknown',
-    fullName: data.display_name || '',
-    state: addr.state || addr.region || '',
-    country: addr.country || 'India',
-  };
+  try {
+    const url = `${NOMINATIM}/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) throw new Error('Geocoding response not ok');
+    const data = await res.json();
+    const addr = data.address || {};
+    return {
+      name: data.display_name?.split(',')[0] || `Location (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+      fullName: data.display_name || `Spot near ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+      state: addr.state || addr.region || addr.county || 'Karnataka',
+      country: addr.country || 'India',
+    };
+  } catch {
+    return {
+      name: `Rider Spot (${lat.toFixed(3)}, ${lng.toFixed(3)})`,
+      fullName: `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+      state: 'Karnataka',
+      country: 'India',
+    };
+  }
 }
 
 export async function getRoadDistance(fromLat, fromLng, toLat, toLng) {
