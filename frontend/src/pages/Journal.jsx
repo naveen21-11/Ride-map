@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { BookOpen, Trophy, MapPin, Star, Download, Loader2 } from 'lucide-react';
+import { BookOpen, Trophy, MapPin, Star, Download, Loader2, Plus, X } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import { getPins, markVisited, deletePin } from '../services/api';
+import { getPins, createPin, markVisited, deletePin } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const TABS = [
@@ -16,6 +16,15 @@ export default function Journal() {
   const [pins, setPins] = useState([]);
   const [tab, setTab] = useState('ALL');
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    pin_type: 'BUCKET_LIST',
+    state: 'Karnataka',
+    country: 'India',
+    distance_km: '',
+    notes: '',
+  });
   const { user } = useAuth();
 
   useEffect(() => { loadPins(); }, []);
@@ -28,6 +37,26 @@ export default function Journal() {
       setPins(list);
     } catch { toast.error('Failed to load journal'); }
     finally { setLoading(false); }
+  };
+
+  const handleAddEntry = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) return toast.error('Please enter a location name');
+    try {
+      await createPin({
+        ...form,
+        latitude: 12.9716 + (Math.random() - 0.5) * 2,
+        longitude: 77.5946 + (Math.random() - 0.5) * 2,
+        distance_km: form.distance_km ? parseFloat(form.distance_km) : 100,
+        weather: 'Pleasant Weather',
+      });
+      toast.success('Journal entry added!');
+      setShowModal(false);
+      setForm({ name: '', pin_type: 'BUCKET_LIST', state: 'Karnataka', country: 'India', distance_km: '', notes: '' });
+      loadPins();
+    } catch {
+      toast.error('Failed to add entry');
+    }
   };
 
   const filtered = tab === 'ALL' ? pins : pins.filter((p) => p.pin_type === tab);
@@ -73,9 +102,14 @@ export default function Journal() {
           <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="w-7 h-7 text-emerald-primary" /> Ride Journal</h1>
           <p className="text-gray-500 text-sm mt-1">Your motorcycle travel memories across India</p>
         </div>
-        <button onClick={exportPDF} className="btn-secondary flex items-center gap-2">
-          <Download className="w-4 h-4" /> Export PDF
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Entry
+          </button>
+          <button onClick={exportPDF} className="btn-secondary flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export PDF
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -94,12 +128,82 @@ export default function Journal() {
         ))}
       </div>
 
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md p-6 space-y-4 shadow-2xl relative">
+            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5 text-emerald-primary" /> Add Journal Entry</h2>
+            <form onSubmit={handleAddEntry} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Destination / Spot Name</label>
+                <input
+                  required
+                  className="input-field"
+                  placeholder="e.g. Coorg Abbey Falls"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Category</label>
+                  <select
+                    className="input-field"
+                    value={form.pin_type}
+                    onChange={(e) => setForm({ ...form, pin_type: e.target.value })}
+                  >
+                    <option value="BUCKET_LIST">Bucket List</option>
+                    <option value="VISITED">Visited</option>
+                    <option value="FAVORITE">Favorite</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Distance (KM)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    placeholder="250"
+                    value={form.distance_km}
+                    onChange={(e) => setForm({ ...form, distance_km: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">State / Region</label>
+                <input
+                  className="input-field"
+                  placeholder="Karnataka"
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Ride Notes & Experience</label>
+                <textarea
+                  rows="3"
+                  className="input-field"
+                  placeholder="Notes on routes, road conditions, fuel stops..."
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Save Entry</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-emerald-primary" /></div>
       ) : filtered.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">No places yet. Click on the map to start your journal!</p>
+          <p className="text-gray-400">No places found in this category. Add your first entry above or click on the map!</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -111,8 +215,8 @@ export default function Journal() {
                   <p className="text-sm text-gray-500">{pin.state}, {pin.country}</p>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full ${pin.pin_type === 'VISITED' ? 'bg-emerald-primary/20 text-emerald-primary' :
-                    pin.pin_type === 'BUCKET_LIST' ? 'bg-amber-accent/20 text-amber-accent' :
-                      'bg-teal-secondary/20 text-teal-secondary'
+                  pin.pin_type === 'BUCKET_LIST' ? 'bg-amber-accent/20 text-amber-accent' :
+                    'bg-teal-secondary/20 text-teal-secondary'
                   }`}>
                   {pin.pin_type.replace('_', ' ')}
                 </span>
