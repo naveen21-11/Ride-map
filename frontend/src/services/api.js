@@ -130,6 +130,7 @@ export const getPins = async (params) => {
   // Purge any legacy sample pins (IDs 1, 2, 3)
   localList = localList.filter((p) => p.id !== 1 && p.id !== 2 && p.id !== 3).map((p) => ({
     ...p,
+    pin_type: p.pin_type || 'BUCKET_LIST',
     latitude: parseFloat(p.latitude || 20.5937),
     longitude: parseFloat(p.longitude || 78.9629),
   }));
@@ -140,6 +141,7 @@ export const getPins = async (params) => {
     const rawList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
     const serverList = rawList.map((p) => ({
       ...p,
+      pin_type: p.pin_type || 'BUCKET_LIST',
       latitude: parseFloat(p.latitude || 20.5937),
       longitude: parseFloat(p.longitude || 78.9629),
     }));
@@ -176,6 +178,7 @@ export const createPin = async (data) => {
     if (res?.data) {
       const serverItem = {
         ...res.data,
+        pin_type: res.data.pin_type || newPin.pin_type,
         latitude: parseFloat(res.data.latitude || newPin.latitude),
         longitude: parseFloat(res.data.longitude || newPin.longitude),
       };

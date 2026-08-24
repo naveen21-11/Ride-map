@@ -84,7 +84,7 @@ export default function Journal() {
       doc.setFontSize(14);
       doc.text(`${i + 1}. ${pin.name}`, 20, y);
       doc.setFontSize(10);
-      doc.text(`   ${pin.pin_type.replace('_', ' ')} | ${pin.state}, ${pin.country}`, 20, y + 7);
+      doc.text(`   ${(pin.pin_type || 'BUCKET_LIST').replace('_', ' ')} | ${pin.state || ''}, ${pin.country || ''}`, 20, y + 7);
       if (pin.distance_km) doc.text(`   Distance: ${pin.distance_km} KM`, 20, y + 14);
       if (pin.weather) doc.text(`   Weather: ${pin.weather}`, 20, y + 21);
       if (pin.notes) doc.text(`   Notes: ${pin.notes}`, 20, y + 28);
@@ -226,7 +226,7 @@ export default function Journal() {
                   pin.pin_type === 'BUCKET_LIST' ? 'bg-amber-accent/20 text-amber-accent' :
                     'bg-teal-secondary/20 text-teal-secondary'
                   }`}>
-                  {pin.pin_type.replace('_', ' ')}
+                  {(pin.pin_type || 'BUCKET_LIST').replace('_', ' ')}
                 </span>
               </div>
 
