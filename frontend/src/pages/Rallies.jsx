@@ -74,13 +74,22 @@ export default function Rallies() {
   };
 
   const handleJoin = async () => {
-    if (!joinCode.trim()) return;
+    const code = joinCode.trim().toUpperCase();
+    if (!code) {
+      toast.error('Please enter an invite code');
+      return;
+    }
     try {
-      const { data } = await joinByCode(joinCode.toUpperCase());
-      toast.success(`Joined ${data.title}!`);
+      const res = await joinByCode(code);
+      const data = res?.data;
+      const rallyTitle = data?.title || 'Rally';
+      toast.success(`Successfully joined ${rallyTitle}!`);
       setJoinCode('');
       loadRides();
-    } catch { toast.error('Invalid invite code'); }
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.response?.data?.detail || 'Invalid or expired invite code';
+      toast.error(errorMsg);
+    }
   };
 
   const copyCode = (code) => {

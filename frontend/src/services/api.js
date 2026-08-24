@@ -270,18 +270,30 @@ export const createRide = async (data) => {
 };
 
 export const joinByCode = async (invite_code) => {
+  const codeClean = (invite_code || '').trim().toUpperCase();
   const localList = getLocalStore('ridemap_rides', INITIAL_RIDES);
-  const match = localList.find((r) => r.invite_code?.toUpperCase() === invite_code.toUpperCase());
+  const match = localList.find((r) => r.invite_code?.toUpperCase() === codeClean);
   if (match) {
     match.member_count = (match.member_count || 1) + 1;
     if (!match.members) match.members = [];
-    match.members.push({ id: Date.now(), rider: { username: 'You' } });
+    if (!match.members.some((m) => m.rider?.username === 'You')) {
+      match.members.push({ id: Date.now(), rider: { username: 'You' } });
+    }
     setLocalStore('ridemap_rides', localList);
   }
+
   try {
-    return await api.post('/rides/join_by_code/', { invite_code });
-  } catch { }
-  return { data: match || { title: 'Joined Rally', invite_code } };
+    const res = await api.post('/rides/join_by_code/', { invite_code: codeClean });
+    if (res?.data) {
+      return { data: res.data };
+    }
+  } catch (err) {
+    if (match) {
+      return { data: match };
+    }
+    throw err;
+  }
+  return { data: match || { id: Date.now(), title: `Rally ${codeClean}`, invite_code: codeClean } };
 };
 
 export const leaveRide = async (id) => {
