@@ -20,6 +20,8 @@ api.interceptors.response.use(
     const isAuthRoute =
       original?.url?.includes('/auth/login') ||
       original?.url?.includes('/auth/register') ||
+      original?.url?.includes('/auth/send-otp') ||
+      original?.url?.includes('/auth/verify-otp') ||
       original?.url?.includes('/auth/refresh');
 
     if (error.response?.status === 401 && !original._retry && !isAuthRoute) {
@@ -46,6 +48,9 @@ export default api;
 
 export const register = (data) => api.post('/auth/register/', data);
 export const login = (data) => api.post('/auth/login/', data);
+export const sendOTP = (email) => api.post('/auth/send-otp/', { email });
+export const verifyOTP = (email, otp) => api.post('/auth/verify-otp/', { email, otp });
+
 export const getMe = () => api.get('/users/me/');
 export const updateProfile = (data) => api.patch('/users/update_profile/', data);
 export const setBackgroundImage = (background_image) => updateProfile({ background_image });
@@ -80,3 +85,5 @@ export const getExpenses = () => api.get('/expenses/');
 export const createExpense = (data) => api.post('/expenses/', data);
 export const deleteExpense = (id) => api.delete(`/expenses/${id}/`);
 export const getExpenseAnalytics = () => api.get('/expenses/analytics/');
+export const setMonthlyBudget = (monthly_budget) => api.post('/expenses/set_budget/', { monthly_budget });
+

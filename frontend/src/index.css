@@ -2,41 +2,164 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-dark text-gray-100 font-sans antialiased;
-  }
+body {
+  background-color: #030712;
+  color: #f3f4f6;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@layer components {
-  .glass-card {
-    @apply bg-slate-panel/80 backdrop-blur-glass border border-white/10 rounded-xl shadow-xl;
-  }
+.glass-card {
+  background-color: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
 
-  .btn-primary {
-    @apply bg-emerald-primary hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200;
-  }
+.btn-primary {
+  background-color: #059669;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 6px -1px rgba(6, 78, 59, 0.4);
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
 
-  .btn-secondary {
-    @apply bg-teal-secondary/20 hover:bg-teal-secondary/40 text-teal-secondary border border-teal-secondary/30 font-medium px-4 py-2 rounded-lg transition-all duration-200;
-  }
+.btn-primary:hover {
+  background-color: #047857;
+}
 
-  .btn-accent {
-    @apply bg-amber-accent/20 hover:bg-amber-accent/40 text-amber-accent border border-amber-accent/30 font-medium px-4 py-2 rounded-lg transition-all duration-200;
-  }
+.btn-primary:active {
+  transform: scale(0.98);
+}
 
-  .input-field {
-    @apply w-full bg-dark/60 border border-white/10 rounded-lg px-4 py-2.5 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-primary/50 focus:border-emerald-primary/50 transition-all;
-  }
+.btn-secondary {
+  background-color: rgba(20, 184, 166, 0.2);
+  color: #14b8a6;
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
 
-  .data-mono {
-    @apply font-mono text-sm tracking-wide;
-  }
+.btn-secondary:hover {
+  background-color: rgba(20, 184, 166, 0.4);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.btn-accent {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-accent:hover {
+  background-color: rgba(245, 158, 11, 0.4);
+}
+
+.btn-accent:active {
+  transform: scale(0.98);
+}
+
+.btn-danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger:active {
+  transform: scale(0.98);
+}
+
+.input-field {
+  width: 100%;
+  background-color: rgba(3, 7, 18, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.625rem 1rem;
+  color: #f3f4f6;
+  font-size: 0.875rem;
+  min-height: 44px;
+  transition: all 0.2s ease-in-out;
+}
+
+.input-field::placeholder {
+  color: #6b7280;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: rgba(5, 150, 105, 0.5);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.5);
+}
+
+.data-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .leaflet-container {
   background: #030712 !important;
   font-family: 'Inter', sans-serif;
+  z-index: 1;
 }
 
 .leaflet-popup-content-wrapper {
@@ -62,8 +185,15 @@
 }
 
 @keyframes celebrate {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 .celebrate {

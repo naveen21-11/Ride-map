@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getMe, login as apiLogin, register as apiRegister } from '../services/api';
+import { getMe, login as apiLogin, register as apiRegister, verifyOTP as apiVerifyOTP } from '../services/api';
 
 const AuthContext = createContext(null);
+
 
 const persistBackgroundPreference = (userData) => {
   if (!userData) return;
@@ -62,6 +63,22 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
+  const loginWithOTP = async (email, otp) => {
+    const { data } = await apiVerifyOTP(email, otp);
+    localStorage.setItem('access_token', data.access);
+    localStorage.setItem('refresh_token', data.refresh);
+    let userData = data.user;
+    try {
+      const me = await getMe();
+      userData = me.data || me;
+    } catch {
+      // fallback
+    }
+    setUser(userData);
+    persistBackgroundPreference(userData);
+    return userData;
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -69,10 +86,11 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser: loadUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithOTP, register, logout, refreshUser: loadUser }}>
       {children}
     </AuthContext.Provider>
   );
+
 }
 
 export const useAuth = () => useContext(AuthContext);

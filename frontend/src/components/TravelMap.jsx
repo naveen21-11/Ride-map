@@ -71,7 +71,7 @@ export default function TravelMap() {
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
-      () => {}
+      () => { }
     );
     loadPins();
   }, []);
@@ -156,8 +156,8 @@ export default function TravelMap() {
         pinType === 'BUCKET_LIST'
           ? 'Added to Bucket List!'
           : pinType === 'FAVORITE'
-          ? 'Added to Favorites!'
-          : 'Pin saved!'
+            ? 'Added to Favorites!'
+            : 'Pin saved!'
       );
       loadPins();
     } catch {
@@ -205,24 +205,24 @@ export default function TravelMap() {
   const tile = TILE_LAYERS[tileKey];
 
   return (
-    <div className="relative h-[calc(100vh-1rem)] lg:h-[calc(100vh-1.5rem)] rounded-xl overflow-hidden border border-white/10">
+    <div className="relative h-[calc(100vh-5rem)] lg:h-[calc(100vh-1.5rem)] rounded-xl overflow-hidden border border-white/10">
       {/* Top Controls */}
-      <div className="absolute top-3 left-3 right-3 z-[1000] flex flex-wrap gap-2">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+      <div className="absolute top-3 left-3 right-3 z-[1000] flex flex-wrap sm:flex-nowrap gap-2">
+        <div className="relative w-full sm:flex-1 sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             ref={searchRef}
-            className="input-field pl-10 bg-slate-panel/90 backdrop-blur-glass"
+            className="input-field pl-10 bg-slate-panel/90 backdrop-blur-glass min-h-[40px] text-xs sm:text-sm"
             placeholder="Search places in India..."
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
           />
           {suggestions.length > 0 && (
-            <div className="absolute top-full mt-1 w-full glass-card max-h-60 overflow-y-auto">
+            <div className="absolute top-full mt-1 w-full glass-card max-h-60 overflow-y-auto shadow-2xl">
               {suggestions.map((s) => (
                 <button
                   key={s.place_id}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 border-b border-white/5 last:border-0"
+                  className="w-full text-left px-4 py-2.5 text-xs sm:text-sm hover:bg-white/5 border-b border-white/5 last:border-0"
                   onClick={() => selectPlace(s)}
                 >
                   {s.display_name}
@@ -232,9 +232,9 @@ export default function TravelMap() {
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-start">
           <select
-            className="input-field w-auto bg-slate-panel/90 backdrop-blur-glass text-sm"
+            className="input-field w-auto flex-1 sm:flex-none bg-slate-panel/90 backdrop-blur-glass text-xs sm:text-sm min-h-[40px]"
             value={tileKey}
             onChange={(e) => setTileKey(e.target.value)}
           >
@@ -243,27 +243,27 @@ export default function TravelMap() {
             ))}
           </select>
 
-          <button onClick={togglePumps} className={`btn-secondary flex items-center gap-1.5 text-sm ${showPumps ? 'ring-2 ring-red-400' : ''}`}>
-            <Fuel className="w-4 h-4" /> ⛽
+          <button onClick={togglePumps} className={`btn-secondary flex items-center justify-center gap-1.5 text-xs sm:text-sm min-h-[40px] px-3 ${showPumps ? 'ring-2 ring-red-400' : ''}`}>
+            <Fuel className="w-3.5 h-3.5" /> ⛽
           </button>
-          <button onClick={toggleHospitals} className={`btn-secondary flex items-center gap-1.5 text-sm ${showHospitals ? 'ring-2 ring-blue-400' : ''}`}>
-            <Hospital className="w-4 h-4" /> 🏥
+          <button onClick={toggleHospitals} className={`btn-secondary flex items-center justify-center gap-1.5 text-xs sm:text-sm min-h-[40px] px-3 ${showHospitals ? 'ring-2 ring-blue-400' : ''}`}>
+            <Hospital className="w-3.5 h-3.5" /> 🏥
           </button>
         </div>
       </div>
 
       {overlayLoading && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] glass-card px-4 py-2 flex items-center gap-2">
+        <div className="absolute top-24 sm:top-16 left-1/2 -translate-x-1/2 z-[1000] glass-card px-4 py-2 flex items-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin text-emerald-primary" />
-          <span className="text-sm">Loading overlays...</span>
+          <span className="text-xs sm:text-sm">Loading overlays...</span>
         </div>
       )}
 
-      {/* Side Panel */}
+      {/* Side / Bottom Place Details Panel */}
       {selected && (
-        <div className="absolute bottom-3 left-3 right-3 lg:right-auto lg:w-96 z-[1000] glass-card p-4 space-y-3 max-h-[50vh] overflow-y-auto">
+        <div className="absolute bottom-16 lg:bottom-3 left-3 right-3 lg:right-auto lg:w-96 z-[1000] glass-card p-4 space-y-3 max-h-[45vh] lg:max-h-[50vh] overflow-y-auto shadow-2xl">
           {loading ? (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
               <Loader2 className="w-4 h-4 animate-spin" /> Fetching location data...
             </div>
           ) : (

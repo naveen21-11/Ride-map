@@ -25,6 +25,7 @@ export default function Layout({ children }) {
   const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState('');
   const fileInputRef = useRef(null);
 
@@ -78,87 +79,256 @@ export default function Layout({ children }) {
     }
   };
 
+  const isRoleAdmin = user && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(user.role);
+
   return (
-    <div className="relative flex h-screen overflow-hidden">
+    <div className="relative flex h-screen min-h-dvh overflow-hidden bg-dark text-gray-100">
+      {/* Dynamic Background Image & Glass Backdrop */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-300"
+        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-300 pointer-events-none"
         style={{ backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none' }}
       />
-      <div className="absolute inset-0 z-0 bg-slate-950/70" />
+      <div className="absolute inset-0 z-0 bg-slate-950/80 backdrop-blur-[2px] pointer-events-none" />
 
-      {/* Sidebar */}
-      <aside className={`relative z-10 fixed lg:static inset-y-0 left-0 z-50 w-64 glass-card m-0 lg:m-3 flex flex-col transform transition-transform ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      {/* Desktop Permanent Sidebar (lg:flex hidden) */}
+      <aside className="relative z-20 hidden lg:flex w-64 glass-card m-3 flex-col shrink-0">
         <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-primary/20 flex items-center justify-center">
-              <Bike className="w-6 h-6 text-emerald-primary" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/30">
+              <Bike className="w-6 h-6 text-emerald-primary animate-pulse" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">RideMap</h1>
-              <p className="text-xs text-gray-500">India Motorcycle Journal</p>
+              <h1 className="text-lg font-bold text-white tracking-wide">RideMap</h1>
+              <p className="text-xs text-gray-400">India Motorcycle Journal</p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {[...NAV, ...(user && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(user.role) ? ADMIN_NAV : [])].map(({ to, icon: Icon, label }) => (
+        <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+          {[...NAV, ...(isRoleAdmin ? ADMIN_NAV : [])].map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/'}
-              onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
-                  isActive
-                    ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                `flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${isActive
+                  ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/40 shadow-lg shadow-emerald-950/50'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`
               }
             >
               <Icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{label}</span>
+              <span>{label}</span>
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-white/10">
-          <div className="mb-3 rounded-lg border border-white/10 bg-white/5 p-2">
+        <div className="p-4 border-t border-white/10 space-y-3">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-2 space-y-1.5">
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBackgroundSelect} />
-            <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-white/10 transition-all">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-gray-200 hover:bg-white/10 transition-all"
+            >
               <ImageIcon className="w-4 h-4 text-emerald-primary" />
-              <span>Set photo background</span>
+              <span>Set photo wallpaper</span>
             </button>
             {backgroundImage && (
-              <button onClick={clearBackground} className="mt-2 flex w-full items-center justify-center rounded-lg border border-white/10 px-3 py-2 text-xs text-gray-400 hover:bg-white/10 transition-all">
-                Reset background
+              <button
+                onClick={clearBackground}
+                className="flex w-full items-center justify-center rounded-lg border border-white/10 px-3 py-1.5 text-[11px] text-gray-400 hover:bg-white/10 transition-all"
+              >
+                Reset wallpaper
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-teal-secondary/30 flex items-center justify-center text-sm font-bold text-teal-secondary">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-teal-secondary/30 border border-teal-secondary/40 flex items-center justify-center text-sm font-bold text-teal-secondary shrink-0">
               {user?.username?.[0]?.toUpperCase() || 'R'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.username}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.home_city || 'India'}</p>
+              <p className="text-sm font-medium text-white truncate">{user?.username || 'Rider'}</p>
+              <p className="text-xs text-gray-400 truncate">{user?.home_city || 'India'}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-red-400 rounded-lg hover:bg-red-400/10 transition-all">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-400 hover:text-red-400 rounded-lg hover:bg-red-400/10 border border-transparent hover:border-red-500/20 transition-all font-medium"
+          >
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </aside>
 
-      {open && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setOpen(false)} />}
+      {/* Mobile Top Header (< lg) */}
+      <div className="relative z-20 flex-1 flex flex-col min-w-0 h-full">
+        <header className="lg:hidden flex items-center justify-between p-3.5 glass-card m-2 mb-0 border-white/10">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setOpen(true)}
+              aria-label="Open navigation menu"
+              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95 transition-all"
+            >
+              <Menu className="w-5 h-5 text-gray-200" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/30">
+                <Bike className="w-4 h-4 text-emerald-primary" />
+              </div>
+              <span className="font-bold text-white tracking-wide text-base">RideMap</span>
+            </div>
+          </div>
 
-      <div className="relative z-10 flex-1 flex flex-col min-w-0">
-        <header className="lg:hidden flex items-center justify-between p-4 glass-card m-2 mb-0">
-          <button onClick={() => setOpen(true)}><Menu className="w-6 h-6" /></button>
-          <span className="font-bold text-emerald-primary">RideMap</span>
-          <button onClick={() => setOpen(false)} className="opacity-0"><X className="w-6 h-6" /></button>
+          <div className="flex items-center gap-2">
+            <div
+              onClick={() => setOpen(true)}
+              className="w-8 h-8 rounded-full bg-emerald-primary/20 border border-emerald-primary/40 flex items-center justify-center text-xs font-bold text-emerald-primary cursor-pointer active:scale-95"
+            >
+              {user?.username?.[0]?.toUpperCase() || 'R'}
+            </div>
+          </div>
         </header>
-        <main className="flex-1 overflow-auto p-2 lg:p-3">{children}</main>
+
+        {/* Mobile Slide-over Drawer (< lg) */}
+        {open && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+              onClick={() => setOpen(false)}
+            />
+
+            {/* Slide Drawer Panel */}
+            <div className="relative z-10 w-72 max-w-[80vw] bg-slate-panel border-r border-white/10 h-full flex flex-col p-4 shadow-2xl animate-in slide-in-from-left duration-200">
+              <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/30">
+                    <Bike className="w-5 h-5 text-emerald-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-white text-base">RideMap</h2>
+                    <p className="text-[11px] text-gray-400">Mobile Navigation</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <nav className="flex-1 py-4 space-y-1.5 overflow-y-auto">
+                {[...NAV, ...(isRoleAdmin ? ADMIN_NAV : [])].map(({ to, icon: Icon, label }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end={to === '/'}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
+                        ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30'
+                        : 'text-gray-300 hover:bg-white/5'
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{label}</span>
+                  </NavLink>
+                ))}
+              </nav>
+
+              <div className="pt-4 border-t border-white/10 space-y-3">
+                <button
+                  onClick={() => { setOpen(false); fileInputRef.current?.click(); }}
+                  className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-gray-200 hover:bg-white/10 transition-all"
+                >
+                  <ImageIcon className="w-4 h-4 text-emerald-primary" />
+                  <span>Set wallpaper photo</span>
+                </button>
+
+                <div className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5">
+                  <div className="w-8 h-8 rounded-full bg-teal-secondary/30 border border-teal-secondary/40 flex items-center justify-center text-xs font-bold text-teal-secondary">
+                    {user?.username?.[0]?.toUpperCase() || 'R'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-white truncate">{user?.username || 'Rider'}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{user?.role || 'Rider'}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center gap-2 w-full px-3 py-2.5 text-xs font-medium text-red-400 bg-red-500/10 rounded-xl border border-red-500/20 active:scale-95 transition-all"
+                >
+                  <LogOut className="w-4 h-4" /> Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content Area with Adaptive Mobile Padding */}
+        <main className="flex-1 overflow-auto p-2 lg:p-4 pb-24 lg:pb-4">
+          {children}
+        </main>
+
+        {/* Mobile Speed Dial Quick Action FAB (< lg) */}
+        <div className="lg:hidden fixed bottom-20 right-4 z-40 flex flex-col items-end gap-2">
+          {fabOpen && (
+            <div className="flex flex-col items-end gap-2 mb-1 animate-in fade-in slide-in-from-bottom-3 duration-200">
+              <button
+                onClick={() => { setFabOpen(false); navigate('/expenses'); }}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-emerald-600 text-white text-xs font-medium shadow-xl border border-emerald-400/30 active:scale-95"
+              >
+                <span>💳 Add Expense</span>
+              </button>
+              <button
+                onClick={() => { setFabOpen(false); navigate('/rallies'); }}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-teal-600 text-white text-xs font-medium shadow-xl border border-teal-400/30 active:scale-95"
+              >
+                <span>🏁 Create Rally</span>
+              </button>
+              <button
+                onClick={() => { setFabOpen(false); navigate('/journal'); }}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-indigo-600 text-white text-xs font-medium shadow-xl border border-indigo-400/30 active:scale-95"
+              >
+                <span>📖 New Entry</span>
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => setFabOpen(!fabOpen)}
+            className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 active:scale-90 border border-white/20 ${fabOpen
+              ? 'bg-red-500 rotate-45 ring-4 ring-red-500/30'
+              : 'bg-emerald-primary ring-4 ring-emerald-500/30 hover:scale-105'
+              }`}
+          >
+            <X className={`w-6 h-6 transition-transform duration-300 ${fabOpen ? '' : 'hidden'}`} />
+            <Bike className={`w-5 h-5 transition-transform duration-300 ${fabOpen ? 'hidden' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Fixed Bottom Navigation Bar (< lg) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 flex justify-around items-center shadow-2xl">
+        {NAV.map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[54px] min-h-[44px] transition-all duration-200 ${isActive
+                ? 'text-emerald-primary font-bold bg-emerald-primary/10 border border-emerald-primary/20 scale-105'
+                : 'text-gray-400 hover:text-gray-200'
+              }`
+            }
+          >
+            <Icon className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] tracking-tight truncate max-w-[60px]">{label.split(' ')[0]}</span>
+          </NavLink>
+        ))}
       </div>
     </div>
   );

@@ -64,3 +64,36 @@ class AuthTests(TestCase):
         self.assertEqual(res2.status_code, 400)
         self.assertIn('email', res2.data)
 
+
+class EmailOTPTests(TestCase):
+    def test_send_and_verify_otp_existing_user(self):
+        User.objects.create_user(username='otprider', email='otprider@example.com', password='Password123!')
+        
+        send_res = self.client.post('/api/auth/send-otp/', {'email': 'otprider@example.com'}, content_type='application/json')
+        self.assertEqual(send_res.status_code, 200)
+        otp = send_res.data.get('otp')
+        self.assertTrue(otp)
+
+        verify_res = self.client.post('/api/auth/verify-otp/', {'email': 'otprider@example.com', 'otp': otp}, content_type='application/json')
+        self.assertEqual(verify_res.status_code, 200)
+        self.assertIn('access', verify_res.data)
+        self.assertEqual(verify_res.data['user']['username'], 'otprider')
+
+    def test_send_and_verify_otp_new_user_creation(self):
+        new_email = 'new_otp_user@example.com'
+        send_res = self.client.post('/api/auth/send-otp/', {'email': new_email}, content_type='application/json')
+        self.assertEqual(send_res.status_code, 200)
+        otp = send_res.data.get('otp')
+
+        verify_res = self.client.post('/api/auth/verify-otp/', {'email': new_email, 'otp': otp}, content_type='application/json')
+        self.assertEqual(verify_res.status_code, 200)
+        self.assertIn('access', verify_res.data)
+        self.assertEqual(verify_res.data['user']['email'], new_email)
+
+    def test_invalid_otp_rejection(self):
+        self.client.post('/api/auth/send-otp/', {'email': 'invalidotp@example.com'}, content_type='application/json')
+        verify_res = self.client.post('/api/auth/verify-otp/', {'email': 'invalidotp@example.com', 'otp': '000000'}, content_type='application/json')
+        self.assertEqual(verify_res.status_code, 400)
+        self.assertIn('error', verify_res.data)
+
+

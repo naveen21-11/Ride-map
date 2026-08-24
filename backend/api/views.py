@@ -1,7 +1,10 @@
 import random
 import string
+from django.conf import settings
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.db.models import Q
+
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,13 +15,15 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import (
     User, Follow, LocationPin, GroupRide, GroupRideMember,
-    ChatMessage, Motorcycle, Expense,
+    ChatMessage, Motorcycle, Expense, EmailOTP,
 )
 from .serializers import (
     UserSerializer, RegisterSerializer, CustomTokenObtainPairSerializer, LocationPinSerializer,
     GroupRideSerializer, GroupRideMemberSerializer,
     ChatMessageSerializer, MotorcycleSerializer, ExpenseSerializer,
+    SendOTPSerializer, VerifyOTPSerializer,
 )
+
 
 
 class AdminDashboardView(generics.GenericAPIView):
@@ -108,6 +113,96 @@ class LoginView(TokenObtainPairView):
         })
 
 
+class SendOTPView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = SendOTPSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        otp_code = f"{random.randint(100000, 999999)}"
+        expires_at = timezone.now() + timezone.timedelta(minutes=10)
+
+        EmailOTP.objects.filter(email=email, is_used=False).update(is_used=True)
+
+        EmailOTP.objects.create(
+            email=email,
+            otp_code=otp_code,
+            expires_at=expires_at,
+            is_used=False
+        )
+
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                subject='Your RideMap One-Time Login Code',
+                message=f'Your one-time login code for RideMap is: {otp_code}\nThis code is valid for 10 minutes.',
+                from_email=None,
+                recipient_list=[email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+        resp_data = {'message': 'One-time login code sent to your email.'}
+        if getattr(settings, 'DEBUG', True):
+            resp_data['otp'] = otp_code
+
+        return Response(resp_data, status=status.HTTP_200_OK)
+
+
+class VerifyOTPView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = VerifyOTPSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        otp = serializer.validated_data['otp']
+
+        otp_record = EmailOTP.objects.filter(email=email, is_used=False).order_by('-created_at').first()
+
+        if not otp_record or not otp_record.is_valid() or otp_record.otp_code != otp:
+            return Response({'error': 'Invalid or expired one-time login code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp_record.is_used = True
+        otp_record.save(update_fields=['is_used'])
+
+        user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
+        if not user:
+
+            base_username = email.split('@')[0]
+            clean_username = ''.join(c for c in base_username if c.isalnum() or c in '_-').lower() or 'rider'
+            username = clean_username
+            counter = 1
+            while User.objects.filter(username__iexact=username).exists():
+                username = f"{clean_username}_{counter}"
+                counter += 1
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=get_random_string(32)
+            )
+            user.is_verified = True
+            user.save(update_fields=['is_verified'])
+
+        user.last_login_at = timezone.now()
+        user.save(update_fields=['last_login_at'])
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'user': UserSerializer(user, context={'request': request}).data,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'message': 'Successfully logged in with one-time code.'
+        }, status=status.HTTP_200_OK)
+
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -194,7 +289,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if not getattr(request.user, 'is_admin_user', False):
             return Response({'detail': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
         user = self.get_object()
-        new_password = User.objects.make_random_password(length=12)
+        new_password = get_random_string(length=12)
         user.set_password(new_password)
         user.save(update_fields=['password'])
         return Response({'password': new_password})
@@ -378,8 +473,31 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             amt = float(exp.amount)
             by_category[cat] = by_category.get(cat, 0) + amt
             total += amt
+        
+        monthly_budget = float((request.user.metadata or {}).get('monthly_budget', 0.0))
+        remaining = max(0.0, monthly_budget - total) if monthly_budget > 0 else 0.0
+        percentage = round((total / monthly_budget * 100), 1) if monthly_budget > 0 else 0.0
+
         return Response({
             'total': total,
             'by_category': by_category,
             'count': expenses.count(),
+            'monthly_budget': monthly_budget,
+            'remaining_budget': remaining,
+            'percentage_used': percentage,
         })
+
+    @action(detail=False, methods=['post'])
+    def set_budget(self, request):
+        try:
+            budget = float(request.data.get('monthly_budget', 0))
+        except (ValueError, TypeError):
+            return Response({'error': 'Invalid budget amount.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        if not user.metadata:
+            user.metadata = {}
+        user.metadata['monthly_budget'] = budget
+        user.save(update_fields=['metadata'])
+        return Response({'monthly_budget': budget, 'detail': 'Monthly budget updated successfully.'})
+

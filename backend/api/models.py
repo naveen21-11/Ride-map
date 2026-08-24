@@ -169,3 +169,22 @@ class Expense(models.Model):
 
     def __str__(self):
         return f'{self.category}: ₹{self.amount}'
+
+
+class EmailOTP(models.Model):
+    email = models.EmailField(db_index=True)
+    otp_code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    expires_at = models.DateTimeField(db_index=True)
+    is_used = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f'{self.email} - {self.otp_code}'
+

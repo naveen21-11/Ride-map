@@ -3,8 +3,9 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     User, Follow, LocationPin, GroupRide, GroupRideMember,
-    ChatMessage, Motorcycle, Expense,
+    ChatMessage, Motorcycle, Expense, EmailOTP,
 )
+
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -172,3 +173,22 @@ class ExpenseSerializer(serializers.ModelSerializer):
         if obj.motorcycle:
             return f'{obj.motorcycle.make} {obj.motorcycle.model}'
         return None
+
+
+class SendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        return value.strip().lower()
+
+
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6, min_length=6)
+
+    def validate_email(self, value):
+        return value.strip().lower()
+
+    def validate_otp(self, value):
+        return value.strip()
+

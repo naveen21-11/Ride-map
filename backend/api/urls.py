@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
-    RegisterView, LoginView, AdminDashboardView, UserViewSet, LocationPinViewSet,
+    RegisterView, LoginView, SendOTPView, VerifyOTPView, AdminDashboardView, UserViewSet, LocationPinViewSet,
     GroupRideViewSet, ChatMessageViewSet, MotorcycleViewSet, ExpenseViewSet,
 )
 
@@ -18,7 +18,10 @@ router.register('expenses', ExpenseViewSet, basename='expense')
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', LoginView.as_view(), name='token_obtain_pair'),
+    path('auth/send-otp/', SendOTPView.as_view(), name='send_otp'),
+    path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('admin/dashboard/', AdminDashboardView.as_view(), name='admin-dashboard'),
     path('', include(router.urls)),
 ]
+
