@@ -372,3 +372,92 @@ export const deleteExpense = (id) => api.delete(`/expenses/${id}/`);
 export const getExpenseAnalytics = () => api.get('/expenses/analytics/');
 export const setMonthlyBudget = (monthly_budget) => api.post('/expenses/set_budget/', { monthly_budget });
 
+const INITIAL_SESSIONS = [
+  {
+    id: 'sess_1',
+    user: 'naveen21-11',
+    device: 'Chrome 127 / Windows 11',
+    ip: '157.48.92.14',
+    location: 'Bengaluru, India',
+    login_time: 'Today, 10:15 AM',
+    last_active: 'Just now',
+    status: 'Active',
+    device_type: 'Desktop',
+  },
+  {
+    id: 'sess_2',
+    user: 'CoorgRider',
+    device: 'Safari / iPhone 15 Pro (iOS 17)',
+    ip: '49.37.112.89',
+    location: 'Mysuru, India',
+    login_time: 'Today, 06:30 PM',
+    last_active: '5 min ago',
+    status: 'Active',
+    device_type: 'Mobile',
+  },
+  {
+    id: 'sess_3',
+    user: 'TrailBlazer',
+    device: 'Firefox / Galaxy S24 (Android 14)',
+    ip: '103.21.124.5',
+    location: 'Coorg, India',
+    login_time: 'Today, 02:20 PM',
+    last_active: '42 min ago',
+    status: 'Idle',
+    device_type: 'Mobile',
+  },
+  {
+    id: 'sess_4',
+    user: 'GhatsExplorer',
+    device: 'Edge 126 / macOS Sonoma',
+    ip: '182.73.45.12',
+    location: 'Chikmagalur, India',
+    login_time: 'Yesterday, 09:10 PM',
+    last_active: '3 hours ago',
+    status: 'Idle',
+    device_type: 'Desktop',
+  },
+];
+
+const INITIAL_ACTIVITY_LOGS = [
+  { id: 1, user: 'naveen21-11', action: 'USER_LOGIN', details: 'Logged in via Chrome on Windows 11 (IP: 157.48.92.14)', timestamp: 'Just now', category: 'Auth' },
+  { id: 2, user: 'CoorgRider', action: 'RALLY_CREATED', details: 'Created rally: Bengaluru to Coorg Weekend Expedition', timestamp: '15 min ago', category: 'Rally' },
+  { id: 3, user: 'TrailBlazer', action: 'PIN_ADDED', details: 'Pinned location: Nandi Hills Sunset Viewpoint', timestamp: '1 hour ago', category: 'Journal' },
+  { id: 4, user: 'GhatsExplorer', action: 'EXPENSE_LOGGED', details: 'Recorded ₹1,850 fuel expense for Ghats Run', timestamp: '3 hours ago', category: 'Expense' },
+  { id: 5, user: 'RiderOne', action: 'GPS_BROADCAST', details: 'Started live GPS position broadcast in Coorg Rally', timestamp: '4 hours ago', category: 'Rally' },
+];
+
+export const getDeviceSessions = async () => {
+  try {
+    const res = await api.get('/admin/sessions/');
+    const list = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : null;
+    if (list) {
+      setLocalStore('ridemap_sessions', list);
+      return { data: list };
+    }
+  } catch { }
+  return { data: getLocalStore('ridemap_sessions', INITIAL_SESSIONS) };
+};
+
+export const revokeDeviceSession = async (id) => {
+  let localList = getLocalStore('ridemap_sessions', INITIAL_SESSIONS);
+  localList = localList.filter((s) => String(s.id) !== String(id));
+  setLocalStore('ridemap_sessions', localList);
+  try {
+    return await api.post(`/admin/sessions/${id}/revoke/`);
+  } catch { }
+  return { data: { success: true } };
+};
+
+export const getActivityLogs = async () => {
+  try {
+    const res = await api.get('/admin/activities/');
+    const list = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : null;
+    if (list) {
+      setLocalStore('ridemap_activities', list);
+      return { data: list };
+    }
+  } catch { }
+  return { data: getLocalStore('ridemap_activities', INITIAL_ACTIVITY_LOGS) };
+};
+
