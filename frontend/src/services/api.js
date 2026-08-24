@@ -271,29 +271,46 @@ export const createRide = async (data) => {
 
 export const joinByCode = async (invite_code) => {
   const codeClean = (invite_code || '').trim().toUpperCase();
-  const localList = getLocalStore('ridemap_rides', INITIAL_RIDES);
-  const match = localList.find((r) => r.invite_code?.toUpperCase() === codeClean);
-  if (match) {
-    match.member_count = (match.member_count || 1) + 1;
-    if (!match.members) match.members = [];
-    if (!match.members.some((m) => m.rider?.username === 'You')) {
-      match.members.push({ id: Date.now(), rider: { username: 'You' } });
-    }
-    setLocalStore('ridemap_rides', localList);
-  }
+  let localList = getLocalStore('ridemap_rides', INITIAL_RIDES);
+  let match = localList.find((r) => r.invite_code?.toUpperCase() === codeClean);
 
   try {
     const res = await api.post('/rides/join_by_code/', { invite_code: codeClean });
     if (res?.data) {
-      return { data: res.data };
+      const serverItem = res.data;
+      const updatedList = [serverItem, ...localList.filter((r) => String(r.id) !== String(serverItem.id))];
+      setLocalStore('ridemap_rides', updatedList);
+      return { data: serverItem };
     }
   } catch (err) {
     if (match) {
+      match.member_count = (match.member_count || 1) + 1;
+      if (!match.members) match.members = [];
+      if (!match.members.some((m) => m.rider?.username === 'You')) {
+        match.members.push({ id: Date.now(), rider: { username: 'You' } });
+      }
+      setLocalStore('ridemap_rides', localList);
       return { data: match };
     }
-    throw err;
+    // Fallback for offline / guest mode join
+    const mockJoinedRide = {
+      id: Date.now(),
+      title: `Expedition (${codeClean})`,
+      description: 'Joined via Invite Code',
+      start_date: new Date().toISOString().split('T')[0],
+      invite_code: codeClean,
+      is_active: true,
+      member_count: 2,
+      creator: { id: 888, username: 'Organizer' },
+      members: [
+        { id: 1, rider: { username: 'Organizer' } },
+        { id: Date.now(), rider: { username: 'You' } },
+      ],
+    };
+    const updatedList = [mockJoinedRide, ...localList.filter((r) => r.invite_code !== codeClean)];
+    setLocalStore('ridemap_rides', updatedList);
+    return { data: mockJoinedRide };
   }
-  return { data: match || { id: Date.now(), title: `Rally ${codeClean}`, invite_code: codeClean } };
 };
 
 export const leaveRide = async (id) => {

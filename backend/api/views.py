@@ -345,15 +345,16 @@ class GroupRideViewSet(viewsets.ModelViewSet):
         )
         GroupRideMember.objects.create(group_ride=ride, rider=self.request.user)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def join_by_code(self, request):
         code = request.data.get('invite_code', '').upper().strip()
         try:
             ride = GroupRide.objects.get(invite_code=code, is_active=True)
         except GroupRide.DoesNotExist:
             return Response({'error': 'Invalid invite code.'}, status=status.HTTP_404_NOT_FOUND)
-        GroupRideMember.objects.get_or_create(group_ride=ride, rider=request.user)
-        return Response(GroupRideSerializer(ride).data)
+        if request.user.is_authenticated:
+            GroupRideMember.objects.get_or_create(group_ride=ride, rider=request.user)
+        return Response(GroupRideSerializer(ride, context={'request': request}).data)
 
     @action(detail=True, methods=['post'])
     def leave(self, request, pk=None):
