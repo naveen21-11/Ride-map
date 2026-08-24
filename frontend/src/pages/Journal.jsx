@@ -201,9 +201,17 @@ export default function Journal() {
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-emerald-primary" /></div>
       ) : filtered.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">No places found in this category. Add your first entry above or click on the map!</p>
+        <div className="glass-card p-12 text-center border border-dashed border-emerald-500/30 space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-primary/20 flex items-center justify-center mx-auto border border-emerald-primary/30">
+            <MapPin className="w-8 h-8 text-emerald-primary animate-bounce" />
+          </div>
+          <h3 className="text-xl font-bold text-white">Welcome to your Ride Journal!</h3>
+          <p className="text-gray-400 text-sm max-w-md mx-auto">
+            You don't have any saved travel entries yet. Start logging your motorcycle trips, visited places, and bucket list spots across India!
+          </p>
+          <button onClick={() => setShowModal(true)} className="btn-primary inline-flex items-center gap-2 px-6 py-3 text-sm">
+            <Plus className="w-4 h-4" /> Add Your First Entry
+          </button>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

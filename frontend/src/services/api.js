@@ -101,44 +101,7 @@ export const deleteUser = (id) => api.delete(`/users/${id}/`);
 export const followUser = (id) => api.post(`/users/${id}/follow/`);
 export const unfollowUser = (id) => api.post(`/users/${id}/unfollow/`);
 // LocalStorage Fallback Storage Helpers
-const INITIAL_PINS = [
-  {
-    id: 1,
-    name: 'Nandi Hills Sunset Viewpoint',
-    pin_type: 'VISITED',
-    latitude: 13.3702,
-    longitude: 77.6835,
-    state: 'Karnataka',
-    country: 'India',
-    distance_km: 62,
-    weather: '24°C Pleasant Breeze',
-    notes: 'Breathtaking twisties and early morning fog ride with co-riders.',
-  },
-  {
-    id: 2,
-    name: 'Leh Ladakh Highway Pass',
-    pin_type: 'BUCKET_LIST',
-    latitude: 34.1526,
-    longitude: 77.5771,
-    state: 'Ladakh',
-    country: 'India',
-    distance_km: 2400,
-    weather: '12°C Clear Skies',
-    notes: 'Ultimate dream motorcycle expedition crossing Khardung La.',
-  },
-  {
-    id: 3,
-    name: 'Gokarna Om Beach Trail',
-    pin_type: 'FAVORITE',
-    latitude: 14.5199,
-    longitude: 74.3188,
-    state: 'Karnataka',
-    country: 'India',
-    distance_km: 480,
-    weather: '28°C Coastal Breeze',
-    notes: 'Scenic coastal ride along NH66 with beachside camping.',
-  },
-];
+const INITIAL_PINS = [];
 
 const INITIAL_RIDES = [
   {
