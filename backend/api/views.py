@@ -396,22 +396,24 @@ class GroupRideViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only completed rallies can be deleted.'}, status=status.HTTP_400_BAD_REQUEST)
         return super().destroy(request, *args, **kwargs)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny])
     def update_location(self, request, pk=None):
         ride = self.get_object()
         if not ride.is_active:
             return Response({'error': 'This rally has been completed and is no longer tracking location.'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            member = GroupRideMember.objects.get(group_ride=ride, rider=request.user)
-        except GroupRideMember.DoesNotExist:
-            return Response({'error': 'Not a member.'}, status=status.HTTP_403_FORBIDDEN)
+        if request.user.is_authenticated:
+            member, _ = GroupRideMember.objects.get_or_create(group_ride=ride, rider=request.user)
+        else:
+            member = GroupRideMember.objects.filter(group_ride=ride).first()
+            if not member:
+                return Response({'error': 'Not a member.'}, status=status.HTTP_403_FORBIDDEN)
         member.latitude = request.data.get('latitude')
         member.longitude = request.data.get('longitude')
         member.heading = request.data.get('heading')
         member.speed_kmh = request.data.get('speed_kmh')
         member.last_updated = timezone.now()
         member.save()
-        return Response(GroupRideMemberSerializer(member).data)
+        return Response(GroupRideMemberSerializer(member, context={'request': request}).data)
 
 
 class ChatMessageViewSet(viewsets.ModelViewSet):

@@ -373,18 +373,24 @@ export default function Rallies() {
               )}
 
               <div className="flex flex-wrap gap-2 pt-1">
-                <button onClick={() => setLiveMapRide(ride)} className="btn-accent text-sm flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" /> View Live Map 🗺️
+                <button
+                  onClick={() => {
+                    setLiveMapRide(ride);
+                    if (activeRide !== ride.id && ride.is_active) startTracking(ride);
+                  }}
+                  className="btn-accent text-sm flex items-center gap-1 font-bold"
+                >
+                  <MapPin className="w-3.5 h-3.5" /> View Live Co-Rider Map 🗺️
                 </button>
 
                 {ride.is_active ? (
                   activeRide === ride.id ? (
-                    <button onClick={stopTracking} className="btn-secondary text-sm flex items-center gap-1 border-emerald-primary/40 text-emerald-primary">
-                      <Radio className="w-3.5 h-3.5 text-emerald-primary animate-pulse" /> Stop GPS Broadcast
+                    <button onClick={stopTracking} className="btn-secondary text-sm flex items-center gap-1 border-emerald-primary/40 text-emerald-primary font-bold">
+                      <Radio className="w-3.5 h-3.5 text-emerald-primary animate-pulse" /> Live GPS: ON
                     </button>
                   ) : (
                     <button onClick={() => startTracking(ride)} className="btn-primary text-sm flex items-center gap-1">
-                      <Navigation className="w-3.5 h-3.5" /> Start Live GPS
+                      <Navigation className="w-3.5 h-3.5" /> Start Live GPS 📡
                     </button>
                   )
                 ) : (
