@@ -101,74 +101,9 @@ export const deleteUser = (id) => api.delete(`/users/${id}/`);
 export const followUser = (id) => api.post(`/users/${id}/follow/`);
 export const unfollowUser = (id) => api.post(`/users/${id}/unfollow/`);
 // LocalStorage Fallback Storage Helpers
-const INITIAL_PINS = [
-  {
-    id: 1,
-    name: 'Nandi Hills Sunset Viewpoint',
-    pin_type: 'VISITED',
-    latitude: 13.3702,
-    longitude: 77.6835,
-    state: 'Karnataka',
-    country: 'India',
-    distance_km: 62,
-    weather: '24°C Pleasant Breeze',
-    notes: 'Breathtaking twisties and early morning fog ride with co-riders.',
-  },
-  {
-    id: 2,
-    name: 'Leh Ladakh Highway Pass',
-    pin_type: 'BUCKET_LIST',
-    latitude: 34.1526,
-    longitude: 77.5771,
-    state: 'Ladakh',
-    country: 'India',
-    distance_km: 2400,
-    weather: '12°C Clear Skies',
-    notes: 'Ultimate dream motorcycle expedition crossing Khardung La.',
-  },
-  {
-    id: 3,
-    name: 'Gokarna Om Beach Trail',
-    pin_type: 'FAVORITE',
-    latitude: 14.5199,
-    longitude: 74.3188,
-    state: 'Karnataka',
-    country: 'India',
-    distance_km: 480,
-    weather: '28°C Coastal Breeze',
-    notes: 'Scenic coastal ride along NH66 with beachside camping.',
-  },
-];
+const INITIAL_PINS = [];
 
-const INITIAL_RIDES = [
-  {
-    id: 1,
-    title: 'Bengaluru to Coorg Weekend Rally',
-    description: 'Scenic coffee estate curves and waterfall trail ride',
-    start_date: '2026-09-01',
-    invite_code: 'RIDE-COORG1',
-    is_active: true,
-    member_count: 3,
-    creator: { id: 101, username: 'CoorgRider' },
-    members: [
-      { id: 1, rider: { username: 'RiderOne' }, latitude: 12.9716, longitude: 77.5946, speed_kmh: '65.0' },
-      { id: 2, rider: { username: 'TrailBlazer' }, latitude: 12.2958, longitude: 76.6394, speed_kmh: '52.4' },
-    ],
-  },
-  {
-    id: 2,
-    title: 'Western Ghats Monsoon Run',
-    description: 'Chikmagalur misty peaks and tea estate trail',
-    start_date: '2026-09-10',
-    invite_code: 'RIDE-GHATS2',
-    is_active: true,
-    member_count: 5,
-    creator: { id: 102, username: 'GhatsExplorer' },
-    members: [
-      { id: 3, rider: { username: 'AdventureRider' }, latitude: 13.3161, longitude: 75.772, speed_kmh: '48.2' },
-    ],
-  },
-];
+const INITIAL_RIDES = [];
 
 const getLocalStore = (key, initial) => {
   try {
@@ -178,11 +113,6 @@ const getLocalStore = (key, initial) => {
       return initial;
     }
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(initial) && initial.length > 0) {
-      localStorage.setItem(key, JSON.stringify(initial));
-      return initial;
-    }
     return Array.isArray(parsed) ? parsed : initial;
   } catch {
     return initial;
@@ -196,37 +126,50 @@ const setLocalStore = (key, value) => {
 };
 
 export const getPins = async (params) => {
+  let localList = getLocalStore('ridemap_pins', INITIAL_PINS);
+  // Purge any legacy sample pins (IDs 1, 2, 3)
+  localList = localList.filter((p) => p.id !== 1 && p.id !== 2 && p.id !== 3);
+  setLocalStore('ridemap_pins', localList);
+
   try {
     const res = await api.get('/pins/', { params });
-    const list = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : null;
-    if (list) {
-      setLocalStore('ridemap_pins', list);
-      return { data: list };
+    const serverList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
+    if (serverList.length > 0) {
+      const localOnly = localList.filter((p) => typeof p.id === 'number' && p.id > 1000000000000 && !serverList.some((s) => String(s.id) === String(p.id)));
+      const combined = [...serverList, ...localOnly];
+      setLocalStore('ridemap_pins', combined);
+      return { data: combined };
     }
   } catch { }
-  return { data: getLocalStore('ridemap_pins', INITIAL_PINS) };
+  return { data: localList };
 };
 
 export const createPin = async (data) => {
-  const localList = getLocalStore('ridemap_pins', INITIAL_PINS);
+  let localList = getLocalStore('ridemap_pins', INITIAL_PINS);
+  localList = localList.filter((p) => p.id !== 1 && p.id !== 2 && p.id !== 3);
   const newPin = {
     id: Date.now(),
     name: data.name || 'Unnamed Spot',
     pin_type: data.pin_type || 'BUCKET_LIST',
     latitude: data.latitude || 20.5937,
     longitude: data.longitude || 78.9629,
-    state: data.state || 'India',
+    state: data.state || 'Karnataka',
     country: data.country || 'India',
-    distance_km: data.distance_km || 0,
-    weather: data.weather || 'Sunny',
+    distance_km: data.distance_km ? parseFloat(data.distance_km) : 100,
+    weather: data.weather || 'Pleasant Weather',
     notes: data.notes || '',
   };
-  localList.unshift(newPin);
-  setLocalStore('ridemap_pins', localList);
+  const updatedList = [newPin, ...localList];
+  setLocalStore('ridemap_pins', updatedList);
 
   try {
     const res = await api.post('/pins/', data);
-    return res;
+    if (res?.data) {
+      const serverItem = res.data;
+      const synced = updatedList.map((p) => (p.id === newPin.id ? serverItem : p));
+      setLocalStore('ridemap_pins', synced);
+      return { data: serverItem };
+    }
   } catch { }
   return { data: newPin };
 };
@@ -262,19 +205,27 @@ export const markVisited = async (id) => {
 };
 
 export const getRides = async () => {
+  let localList = getLocalStore('ridemap_rides', INITIAL_RIDES);
+  // Purge any legacy sample rides (IDs 1, 2)
+  localList = localList.filter((r) => r.id !== 1 && r.id !== 2);
+  setLocalStore('ridemap_rides', localList);
+
   try {
     const res = await api.get('/rides/');
-    const list = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : null;
-    if (list) {
-      setLocalStore('ridemap_rides', list);
-      return { data: list };
+    const serverList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
+    if (serverList.length > 0) {
+      const localOnly = localList.filter((r) => typeof r.id === 'number' && r.id > 1000000000000 && !serverList.some((s) => String(s.id) === String(r.id)));
+      const combined = [...serverList, ...localOnly];
+      setLocalStore('ridemap_rides', combined);
+      return { data: combined };
     }
   } catch { }
-  return { data: getLocalStore('ridemap_rides', INITIAL_RIDES) };
+  return { data: localList };
 };
 
 export const createRide = async (data) => {
-  const localList = getLocalStore('ridemap_rides', INITIAL_RIDES);
+  let localList = getLocalStore('ridemap_rides', INITIAL_RIDES);
+  localList = localList.filter((r) => r.id !== 1 && r.id !== 2);
   const code = 'RIDE-' + Math.random().toString(36).substring(2, 8).toUpperCase();
   const newRide = {
     id: Date.now(),
@@ -287,12 +238,17 @@ export const createRide = async (data) => {
     creator: { id: 999, username: 'You' },
     members: [{ id: Date.now(), rider: { username: 'You' } }],
   };
-  localList.unshift(newRide);
-  setLocalStore('ridemap_rides', localList);
+  const updatedList = [newRide, ...localList];
+  setLocalStore('ridemap_rides', updatedList);
 
   try {
     const res = await api.post('/rides/', data);
-    return res;
+    if (res?.data) {
+      const serverItem = res.data;
+      const synced = updatedList.map((r) => (r.id === newRide.id ? serverItem : r));
+      setLocalStore('ridemap_rides', synced);
+      return { data: serverItem };
+    }
   } catch { }
   return { data: newRide };
 };
