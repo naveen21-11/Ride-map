@@ -102,40 +102,70 @@ export default function Rallies() {
       toast.error('Cannot share GPS for a completed rally.');
       return;
     }
-    if (!navigator?.geolocation) {
-      toast.error('Geolocation is not supported by this browser.');
-      return;
+    if (watchId.current) {
+      navigator.geolocation?.clearWatch(watchId.current);
+      clearInterval(watchId.current);
     }
-    if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
     setActiveRide(ride.id);
 
-    try {
-      watchId.current = navigator.geolocation.watchPosition(
+    const sendLocation = (lat, lng, heading = 0, speed = '42.5') => {
+      updateRideLocation(ride.id, {
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
+        heading: heading || 0,
+        speed_kmh: speed || '42.5',
+      }).then(loadRides).catch(() => { });
+    };
+
+    if (navigator?.geolocation) {
+      // Immediate initial lock with fallback timeout
+      navigator.geolocation.getCurrentPosition(
         (pos) => {
-          updateRideLocation(ride.id, {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            heading: pos.coords.heading || 0,
-            speed_kmh: pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : '42.5',
-          }).then(loadRides).catch(() => { });
+          sendLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.heading, pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : '45.0');
+          toast.success('🟢 Live GPS signal locked! Broadcasting position...');
         },
         () => {
-          // Fallback simulation for desktop or denied location permission
-          const fallbackLat = 12.9716 + (Math.random() - 0.5) * 0.05;
-          const fallbackLng = 77.5946 + (Math.random() - 0.5) * 0.05;
-          updateRideLocation(ride.id, {
-            latitude: fallbackLat,
-            longitude: fallbackLng,
-            heading: 90,
-            speed_kmh: '48.0',
-          }).then(loadRides);
-          toast.success('Broadcasting live GPS location!');
+          // Simulation fallback for desktop or permission denied
+          const fallbackLat = 12.9716 + (Math.random() - 0.5) * 0.04;
+          const fallbackLng = 77.5946 + (Math.random() - 0.5) * 0.04;
+          sendLocation(fallbackLat, fallbackLng, 90, '48.0');
+          toast.success('📡 Live position simulation active!');
         },
-        { enableHighAccuracy: true, maximumAge: 3000 }
+        { enableHighAccuracy: false, timeout: 5000 }
       );
-      toast.success('Live GPS tracking started!');
-    } catch (error) {
-      toast.error('Failed to start GPS tracking');
+
+      // Continuous watch
+      try {
+        const watch = navigator.geolocation.watchPosition(
+          (pos) => {
+            sendLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.heading, pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : '42.5');
+          },
+          () => {
+            const fallbackLat = 12.9716 + (Math.random() - 0.5) * 0.04;
+            const fallbackLng = 77.5946 + (Math.random() - 0.5) * 0.04;
+            sendLocation(fallbackLat, fallbackLng, 90, '48.0');
+          },
+          { enableHighAccuracy: false, timeout: 8000, maximumAge: 3000 }
+        );
+        watchId.current = watch;
+      } catch {
+        // Interval fallback
+        const interval = setInterval(() => {
+          const fallbackLat = 12.9716 + (Math.random() - 0.5) * 0.04;
+          const fallbackLng = 77.5946 + (Math.random() - 0.5) * 0.04;
+          sendLocation(fallbackLat, fallbackLng, 90, '48.0');
+        }, 3000);
+        watchId.current = interval;
+      }
+    } else {
+      // Fallback interval if browser has no geolocation API
+      const interval = setInterval(() => {
+        const fallbackLat = 12.9716 + (Math.random() - 0.5) * 0.04;
+        const fallbackLng = 77.5946 + (Math.random() - 0.5) * 0.04;
+        sendLocation(fallbackLat, fallbackLng, 90, '48.0');
+      }, 3000);
+      watchId.current = interval;
+      toast.success('📡 Live position simulation active!');
     }
   };
 
