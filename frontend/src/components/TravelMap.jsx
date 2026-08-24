@@ -79,8 +79,11 @@ export default function TravelMap() {
   const loadPins = async () => {
     try {
       const { data } = await getPins();
-      setPins(data.results || data);
-    } catch { /* not logged in */ }
+      const pinList = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+      setPins(pinList);
+    } catch {
+      setPins([]);
+    }
   };
 
   const handleSearch = async (q) => {

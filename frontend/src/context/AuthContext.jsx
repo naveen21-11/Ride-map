@@ -41,8 +41,13 @@ export function AuthProvider({ children }) {
     const { data } = await apiLogin({ username, password });
     localStorage.setItem('access_token', data.access);
     localStorage.setItem('refresh_token', data.refresh);
-    const me = await getMe();
-    const userData = me.data || me;
+    let userData = data.user || { username, role: 'RIDER' };
+    try {
+      const me = await getMe();
+      userData = me.data || me || userData;
+    } catch {
+      // fallback
+    }
     setUser(userData);
     persistBackgroundPreference(userData);
     return userData;
