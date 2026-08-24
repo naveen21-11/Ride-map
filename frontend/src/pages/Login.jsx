@@ -81,11 +81,11 @@ export default function Login() {
     try {
       const res = await sendOTP(email.trim());
       const data = res.data;
-      toast.success(data.message || 'One-time login code sent to your email!');
+      toast.success(data.message || `📧 One-time code sent to ${email}! Check your email inbox.`, { duration: 5000 });
       if (data.otp) {
         setDevCode(data.otp);
-        setOtpCode(data.otp); // Pre-fill in dev mode for convenience
       }
+      setOtpCode(''); // Keep blank so user types code from email
       setOtpStep(2);
       setCountdown(60);
     } catch (err) {
@@ -139,8 +139,8 @@ export default function Login() {
             type="button"
             onClick={() => { setAuthMode('password'); setOtpStep(1); }}
             className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 ${authMode === 'password'
-                ? 'bg-emerald-primary text-slate-950 shadow-md'
-                : 'text-gray-400 hover:text-white'
+              ? 'bg-emerald-primary text-slate-950 shadow-md'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <KeyRound className="w-3.5 h-3.5" /> Password
@@ -149,8 +149,8 @@ export default function Login() {
             type="button"
             onClick={() => setAuthMode('otp')}
             className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2 ${authMode === 'otp'
-                ? 'bg-emerald-primary text-slate-950 shadow-md'
-                : 'text-gray-400 hover:text-white'
+              ? 'bg-emerald-primary text-slate-950 shadow-md'
+              : 'text-gray-400 hover:text-white'
               }`}
           >
             <Mail className="w-3.5 h-3.5" /> One-Time Code
