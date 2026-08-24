@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Flag, Plus, Users, Copy, Navigation, Loader2, Radio, XCircle, Trash2, MapPin, X, Gauge } from 'lucide-react';
+import { Flag, Plus, Users, Copy, Navigation, Loader2, Radio, XCircle, Trash2, MapPin, X, Gauge, KeyRound } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -324,9 +324,20 @@ export default function Rallies() {
                 {ride.is_active && <span className="text-xs bg-emerald-primary/20 text-emerald-primary px-2 py-1 rounded-full">Active</span>}
               </div>
 
-              <div className="flex items-center gap-2">
-                <code className="data-mono bg-dark/50 px-3 py-1.5 rounded-lg text-emerald-primary text-sm">{ride.invite_code}</code>
-                <button onClick={() => copyCode(ride.invite_code)} className="text-gray-400 hover:text-white"><Copy className="w-4 h-4" /></button>
+              <div className="flex items-center justify-between bg-dark/60 border border-emerald-500/20 rounded-xl p-3">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-emerald-primary" />
+                  <span className="text-xs uppercase tracking-wider text-gray-400 font-semibold">Join Code:</span>
+                  <code className="data-mono text-emerald-primary font-bold text-base tracking-wider">
+                    {ride.invite_code || 'RIDE-EXPEDITION'}
+                  </code>
+                </div>
+                <button
+                  onClick={() => copyCode(ride.invite_code || 'RIDE-EXPEDITION')}
+                  className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5 hover:border-emerald-primary/40"
+                >
+                  <Copy className="w-3.5 h-3.5" /> Copy Code
+                </button>
               </div>
 
               <div className="flex items-center gap-4 text-sm text-gray-400">
