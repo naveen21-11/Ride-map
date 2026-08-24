@@ -11,4 +11,4 @@ frontend/dist/
 *.log
 out.txt
 .vscode/
-
+backend/staticfiles/
