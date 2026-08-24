@@ -388,7 +388,7 @@ export default function TravelMap() {
 
         {isValidSelected && (
           <Marker position={[parseFloat(selected.lat), parseFloat(selected.lng)]} icon={SELECTED_MARKER_ICON}>
-            <Popup defaultOpen>
+            <Popup>
               <div className="space-y-1 text-center min-w-[160px]">
                 <strong className="text-emerald-primary font-bold">{selected.name}</strong>
                 <p className="text-xs text-gray-300">{selected.state}, {selected.country}</p>

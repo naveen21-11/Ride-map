@@ -19,14 +19,19 @@ export class ErrorBoundary extends React.Component {
         if (this.state.hasError) {
             return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-dark text-white">
-                    <div className="glass-card max-w-md p-6 text-center space-y-4 border border-emerald-500/20">
+                    <div className="glass-card max-w-md p-6 text-center space-y-4 border border-emerald-500/20 shadow-2xl">
                         <div className="w-12 h-12 rounded-xl bg-emerald-primary/20 flex items-center justify-center mx-auto text-emerald-primary">
                             <Bike className="w-6 h-6 animate-pulse" />
                         </div>
-                        <h2 className="text-xl font-bold">RideMap Notice</h2>
+                        <h2 className="text-xl font-bold text-white">RideMap Notice</h2>
                         <p className="text-sm text-gray-400">
                             An unexpected display issue occurred in this view.
                         </p>
+                        {this.state.error && (
+                            <div className="text-left bg-dark/80 p-3 rounded-lg border border-red-500/30 font-mono text-xs text-red-400 max-h-32 overflow-y-auto break-words">
+                                {this.state.error.toString()}
+                            </div>
+                        )}
                         <button
                             onClick={() => {
                                 try {
