@@ -128,12 +128,21 @@ const setLocalStore = (key, value) => {
 export const getPins = async (params) => {
   let localList = getLocalStore('ridemap_pins', INITIAL_PINS);
   // Purge any legacy sample pins (IDs 1, 2, 3)
-  localList = localList.filter((p) => p.id !== 1 && p.id !== 2 && p.id !== 3);
+  localList = localList.filter((p) => p.id !== 1 && p.id !== 2 && p.id !== 3).map((p) => ({
+    ...p,
+    latitude: parseFloat(p.latitude || 20.5937),
+    longitude: parseFloat(p.longitude || 78.9629),
+  }));
   setLocalStore('ridemap_pins', localList);
 
   try {
     const res = await api.get('/pins/', { params });
-    const serverList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
+    const rawList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
+    const serverList = rawList.map((p) => ({
+      ...p,
+      latitude: parseFloat(p.latitude || 20.5937),
+      longitude: parseFloat(p.longitude || 78.9629),
+    }));
     if (serverList.length > 0) {
       const localOnly = localList.filter((p) => typeof p.id === 'number' && p.id > 1000000000000 && !serverList.some((s) => String(s.id) === String(p.id)));
       const combined = [...serverList, ...localOnly];
@@ -165,7 +174,11 @@ export const createPin = async (data) => {
   try {
     const res = await api.post('/pins/', data);
     if (res?.data) {
-      const serverItem = res.data;
+      const serverItem = {
+        ...res.data,
+        latitude: parseFloat(res.data.latitude || newPin.latitude),
+        longitude: parseFloat(res.data.longitude || newPin.longitude),
+      };
       const synced = updatedList.map((p) => (p.id === newPin.id ? serverItem : p));
       setLocalStore('ridemap_pins', synced);
       return { data: serverItem };

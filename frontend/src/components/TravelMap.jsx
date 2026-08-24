@@ -177,14 +177,14 @@ export default function TravelMap() {
     if (!selected) return;
     try {
       await createPin({
-        name: selected.name,
+        name: selected.name || 'Rider Spot',
         pin_type: pinType,
-        latitude: selected.lat,
-        longitude: selected.lng,
-        state: selected.state,
-        country: selected.country,
-        distance_km: parseFloat(selected.distance_km),
-        weather: selected.weather,
+        latitude: parseFloat(selected.lat || 20.5937),
+        longitude: parseFloat(selected.lng || 78.9629),
+        state: selected.state || 'Karnataka',
+        country: selected.country || 'India',
+        distance_km: selected.distance_km ? parseFloat(selected.distance_km) : 100,
+        weather: selected.weather || 'Pleasant Weather',
         notes: '',
       });
       toast.success(
@@ -195,8 +195,8 @@ export default function TravelMap() {
             : 'Pin saved!'
       );
       loadPins();
-    } catch {
-      toast.error('Login required to save pins');
+    } catch (err) {
+      toast.error('Failed to save pin');
     }
   };
 
