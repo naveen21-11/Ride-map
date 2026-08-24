@@ -1,16 +1,18 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Map, Users, Wrench, Receipt, Flag,
-  BookOpen, LogOut, Menu, X, Bike, Shield, Image as ImageIcon,
+  BookOpen, LogOut, Menu, X, Bike, Shield, Image as ImageIcon, MessageCircle, Edit3, User as UserIcon,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { setBackgroundImage as saveBackgroundImage } from '../services/api';
+import { setBackgroundImage as saveBackgroundImage, updateProfile } from '../services/api';
+import toast from 'react-hot-toast';
 
 const NAV = [
   { to: '/', icon: Map, label: 'Travel Map' },
   { to: '/journal', icon: BookOpen, label: 'Ride Journal' },
   { to: '/rallies', icon: Flag, label: 'Group Rallies' },
+  { to: '/chat', icon: MessageCircle, label: 'Messages' },
   { to: '/community', icon: Users, label: 'Co-Riders' },
   { to: '/garage', icon: Wrench, label: 'Garage' },
   { to: '/expenses', icon: Receipt, label: 'Expenses' },
@@ -33,6 +35,40 @@ export default function Layout({ children }) {
     const storedBackground = user?.background_image || (user?.username ? window.localStorage.getItem(`ride-background-image:${user.username}`) : '') || window.localStorage.getItem('ride-background-image') || '';
     setBackgroundImage(storedBackground);
   }, [user?.background_image, user?.username]);
+
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    bio: '', home_city: '', country: 'India', first_name: '', last_name: '', avatar: ''
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        bio: user.bio || '',
+        home_city: user.home_city || '',
+        country: user.country || 'India',
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        avatar: user.avatar || '',
+      });
+    }
+  }, [user]);
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      await updateProfile(profileForm);
+      await refreshUser();
+      toast.success('Profile updated successfully!');
+      setShowProfileModal(false);
+    } catch {
+      toast.error('Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -144,13 +180,24 @@ export default function Layout({ children }) {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-teal-secondary/30 border border-teal-secondary/40 flex items-center justify-center text-sm font-bold text-teal-secondary shrink-0">
-              {user?.username?.[0]?.toUpperCase() || 'R'}
+            <div className="w-9 h-9 rounded-full bg-teal-secondary/30 border border-teal-secondary/40 flex items-center justify-center text-sm font-bold text-teal-secondary shrink-0 overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+              ) : (
+                user?.username?.[0]?.toUpperCase() || 'R'
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{user?.username || 'Rider'}</p>
               <p className="text-xs text-gray-400 truncate">{user?.home_city || 'India'}</p>
             </div>
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all"
+              title="Edit Profile"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
           </div>
           <button
             onClick={handleLogout}
@@ -330,6 +377,103 @@ export default function Layout({ children }) {
           </NavLink>
         ))}
       </div>
+
+      {/* User Profile Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+          <div className="glass-card w-full max-w-lg p-6 space-y-4 shadow-2xl border-emerald-500/20">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <UserIcon className="w-5 h-5 text-emerald-primary" />
+                <h3 className="font-bold text-lg text-white">Edit Rider Profile</h3>
+              </div>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">First Name</label>
+                  <input
+                    className="input-field text-sm"
+                    placeholder="First Name"
+                    value={profileForm.first_name}
+                    onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Last Name</label>
+                  <input
+                    className="input-field text-sm"
+                    placeholder="Last Name"
+                    value={profileForm.last_name}
+                    onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Home City</label>
+                <input
+                  className="input-field text-sm"
+                  placeholder="e.g. Bengaluru, Mumbai, Delhi"
+                  value={profileForm.home_city}
+                  onChange={(e) => setProfileForm({ ...profileForm, home_city: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Country</label>
+                <input
+                  className="input-field text-sm"
+                  placeholder="Country"
+                  value={profileForm.country}
+                  onChange={(e) => setProfileForm({ ...profileForm, country: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Avatar Image URL</label>
+                <input
+                  className="input-field text-sm"
+                  placeholder="https://..."
+                  value={profileForm.avatar}
+                  onChange={(e) => setProfileForm({ ...profileForm, avatar: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Rider Bio & Riding Style</label>
+                <textarea
+                  className="input-field text-sm"
+                  rows={3}
+                  placeholder="Tell co-riders about your bike, favourite routes, riding style..."
+                  value={profileForm.bio}
+                  onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button type="submit" disabled={savingProfile} className="btn-primary flex-1 text-sm py-2.5">
+                  {savingProfile ? 'Saving...' : 'Save Profile'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowProfileModal(false)}
+                  className="btn-secondary text-sm py-2.5 px-4"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

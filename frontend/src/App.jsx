@@ -12,6 +12,8 @@ import Expenses from './pages/Expenses';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 
+import Chat from './pages/Chat';
+
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-emerald-primary border-t-transparent rounded-full" /></div>;
@@ -37,6 +39,7 @@ export default function App() {
               <Route path="/" element={<TravelMap />} />
               <Route path="/journal" element={<Journal />} />
               <Route path="/rallies" element={<Rallies />} />
+              <Route path="/chat" element={<Chat />} />
               <Route path="/community" element={<Community />} />
               <Route path="/garage" element={<Garage />} />
               <Route path="/expenses" element={<Expenses />} />

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Users, Search, UserPlus, UserMinus, MapPin, Loader2 } from 'lucide-react';
+import { Users, Search, UserPlus, UserMinus, MapPin, Loader2, MessageCircle } from 'lucide-react';
 import { searchUsers, followUser, unfollowUser, getPins } from '../services/api';
 
 export default function Community() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [riders, setRiders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -81,6 +83,9 @@ export default function Community() {
             <div className="flex gap-2">
               <button onClick={() => toggleFollow(rider)} className={`text-sm flex items-center gap-1 ${rider.is_following ? 'btn-secondary' : 'btn-primary'}`}>
                 {rider.is_following ? <><UserMinus className="w-3.5 h-3.5" /> Unfollow</> : <><UserPlus className="w-3.5 h-3.5" /> Follow</>}
+              </button>
+              <button onClick={() => navigate('/chat')} className="btn-secondary text-sm flex items-center gap-1">
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-primary" /> Message
               </button>
               <button onClick={() => viewLogs(rider)} className="btn-secondary text-sm">Travel Logs</button>
             </div>
