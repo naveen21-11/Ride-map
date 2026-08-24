@@ -77,12 +77,12 @@ export default function Expenses() {
       const [expRes, anaRes, bikeRes] = await Promise.all([
         getExpenses(), getExpenseAnalytics(), getMotorcycles(),
       ]);
-      const expData = expRes.data.results || expRes.data;
+      const expData = Array.isArray(expRes.data?.results) ? expRes.data.results : Array.isArray(expRes.data) ? expRes.data : [];
       setExpenses(expData);
-      setAnalytics(anaRes.data);
-      setBudgetInput(anaRes.data.monthly_budget || '');
+      setAnalytics(anaRes.data || {});
+      setBudgetInput(anaRes.data?.monthly_budget || '');
 
-      const bikes = bikeRes.data.results || bikeRes.data;
+      const bikes = Array.isArray(bikeRes.data?.results) ? bikeRes.data.results : Array.isArray(bikeRes.data) ? bikeRes.data : [];
       setMotorcycles(bikes);
       if (bikes.length > 0 && !calcBike) {
         setCalcBike(bikes[0].id);

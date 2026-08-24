@@ -17,12 +17,12 @@ export default function Chat() {
   const { user } = useAuth();
 
   useEffect(() => {
-    getRides().then(({ data }) => setRides(data.results || data)).catch(() => {});
+    getRides().then(({ data }) => setRides(Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [])).catch(() => { });
   }, []);
 
   useEffect(() => {
     if (search.length >= 2) {
-      searchUsers(search).then(({ data }) => setContacts(data)).catch(() => {});
+      searchUsers(search).then(({ data }) => setContacts(Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [])).catch(() => { });
     } else {
       setContacts([]);
     }
@@ -38,7 +38,7 @@ export default function Chat() {
     if (!params) return;
 
     const fetch = () => {
-      getMessages(params).then(({ data }) => setMessages(data.results || data)).catch(() => {});
+      getMessages(params).then(({ data }) => setMessages(Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [])).catch(() => { });
     };
     fetch();
     const interval = setInterval(fetch, 3000);
@@ -60,7 +60,7 @@ export default function Chat() {
       setText('');
       const params = mode === 'dm' ? { recipient: activeContact.id } : { group_ride: activeRide.id };
       const { data } = await getMessages(params);
-      setMessages(data.results || data);
+      setMessages(Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : []);
     } catch { toast.error('Failed to send message'); }
   };
 
@@ -70,7 +70,7 @@ export default function Chat() {
       await deleteMessage(messageId);
       const params = mode === 'dm' ? { recipient: activeContact.id } : { group_ride: activeRide.id };
       const { data } = await getMessages(params);
-      setMessages(data.results || data);
+      setMessages(Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : []);
       toast.success('Message deleted');
     } catch { toast.error('Failed to delete message'); }
   };

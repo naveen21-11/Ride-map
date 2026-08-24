@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Flag, Plus, Users, Copy, Navigation, Loader2, Radio, XCircle } from 'lucide-react';
+import { Flag, Plus, Users, Copy, Navigation, Loader2, Radio, XCircle, Trash2 } from 'lucide-react';
 import { getRides, createRide, joinByCode, completeRide, updateRideLocation, leaveRide, deleteRide } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,7 +27,8 @@ export default function Rallies() {
   const loadRides = async () => {
     try {
       const { data } = await getRides();
-      setRides(data.results || data);
+      const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+      setRides(list);
     } catch { toast.error('Failed to load rallies'); }
     finally { setLoading(false); }
   };
@@ -78,7 +79,7 @@ export default function Rallies() {
             longitude: pos.coords.longitude,
             heading: pos.coords.heading,
             speed_kmh: pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : 0,
-          }).catch(() => {});
+          }).catch(() => { });
         },
         () => toast.error('GPS access denied'),
         { enableHighAccuracy: true, maximumAge: 3000 }

@@ -24,7 +24,8 @@ export default function Journal() {
     setLoading(true);
     try {
       const { data } = await getPins();
-      setPins(data.results || data);
+      const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+      setPins(list);
     } catch { toast.error('Failed to load journal'); }
     finally { setLoading(false); }
   };
@@ -82,9 +83,8 @@ export default function Journal() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${
-              tab === key ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30' : 'text-gray-400 hover:bg-white/5'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all ${tab === key ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30' : 'text-gray-400 hover:bg-white/5'
+              }`}
           >
             <Icon className="w-4 h-4" /> {label}
             <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded-full">
@@ -110,11 +110,10 @@ export default function Journal() {
                   <h3 className="font-bold text-lg">{pin.name}</h3>
                   <p className="text-sm text-gray-500">{pin.state}, {pin.country}</p>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  pin.pin_type === 'VISITED' ? 'bg-emerald-primary/20 text-emerald-primary' :
-                  pin.pin_type === 'BUCKET_LIST' ? 'bg-amber-accent/20 text-amber-accent' :
-                  'bg-teal-secondary/20 text-teal-secondary'
-                }`}>
+                <span className={`text-xs px-2 py-1 rounded-full ${pin.pin_type === 'VISITED' ? 'bg-emerald-primary/20 text-emerald-primary' :
+                    pin.pin_type === 'BUCKET_LIST' ? 'bg-amber-accent/20 text-amber-accent' :
+                      'bg-teal-secondary/20 text-teal-secondary'
+                  }`}>
                   {pin.pin_type.replace('_', ' ')}
                 </span>
               </div>

@@ -22,7 +22,8 @@ export default function Garage() {
   const loadBikes = async () => {
     try {
       const { data } = await getMotorcycles();
-      setBikes(data.results || data);
+      const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+      setBikes(list);
     } catch { toast.error('Failed to load garage'); }
     finally { setLoading(false); }
   };

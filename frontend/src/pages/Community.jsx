@@ -18,7 +18,8 @@ export default function Community() {
     setLoading(true);
     try {
       const { data } = await searchUsers(q);
-      setRiders(data);
+      const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+      setRiders(list);
     } catch { toast.error('Search failed'); }
     finally { setLoading(false); }
   };
@@ -40,7 +41,8 @@ export default function Community() {
     setSelectedRider(rider);
     try {
       const { data } = await getPins({ rider: rider.id, pin_type: 'VISITED' });
-      setRiderPins(data.results || data);
+      const list = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+      setRiderPins(list);
     } catch { setRiderPins([]); }
   };
 
@@ -68,7 +70,7 @@ export default function Community() {
           <div key={rider.id} className="glass-card p-5 space-y-3">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-teal-secondary/30 flex items-center justify-center text-lg font-bold text-teal-secondary">
-                {rider.username[0].toUpperCase()}
+                {rider.username?.[0]?.toUpperCase() || 'R'}
               </div>
               <div className="flex-1">
                 <h3 className="font-bold">{rider.username}</h3>
