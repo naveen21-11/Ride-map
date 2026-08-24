@@ -4,6 +4,7 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE,
+  timeout: 5000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -29,14 +30,13 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const { data } = await axios.post(`${API_BASE}/auth/refresh/`, { refresh });
+          const { data } = await axios.post(`${API_BASE}/auth/refresh/`, { refresh }, { timeout: 5000 });
           localStorage.setItem('access_token', data.access);
           original.headers.Authorization = `Bearer ${data.access}`;
           return api(original);
         } catch {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-          window.location.href = '/login';
         }
       }
     }
