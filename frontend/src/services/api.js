@@ -101,9 +101,74 @@ export const deleteUser = (id) => api.delete(`/users/${id}/`);
 export const followUser = (id) => api.post(`/users/${id}/follow/`);
 export const unfollowUser = (id) => api.post(`/users/${id}/unfollow/`);
 // LocalStorage Fallback Storage Helpers
-const INITIAL_PINS = [];
+const INITIAL_PINS = [
+  {
+    id: 1,
+    name: 'Nandi Hills Sunset Viewpoint',
+    pin_type: 'VISITED',
+    latitude: 13.3702,
+    longitude: 77.6835,
+    state: 'Karnataka',
+    country: 'India',
+    distance_km: 62,
+    weather: '24°C Pleasant Breeze',
+    notes: 'Breathtaking twisties and early morning fog ride with co-riders.',
+  },
+  {
+    id: 2,
+    name: 'Leh Ladakh Highway Pass',
+    pin_type: 'BUCKET_LIST',
+    latitude: 34.1526,
+    longitude: 77.5771,
+    state: 'Ladakh',
+    country: 'India',
+    distance_km: 2400,
+    weather: '12°C Clear Skies',
+    notes: 'Ultimate dream motorcycle expedition crossing Khardung La.',
+  },
+  {
+    id: 3,
+    name: 'Gokarna Om Beach Trail',
+    pin_type: 'FAVORITE',
+    latitude: 14.5199,
+    longitude: 74.3188,
+    state: 'Karnataka',
+    country: 'India',
+    distance_km: 480,
+    weather: '28°C Coastal Breeze',
+    notes: 'Scenic coastal ride along NH66 with beachside camping.',
+  },
+];
 
-const INITIAL_RIDES = [];
+const INITIAL_RIDES = [
+  {
+    id: 1,
+    title: 'Bengaluru to Coorg Weekend Rally',
+    description: 'Scenic coffee estate curves and waterfall trail ride',
+    start_date: '2026-09-01',
+    invite_code: 'RIDE-COORG1',
+    is_active: true,
+    member_count: 3,
+    creator: { id: 101, username: 'CoorgRider' },
+    members: [
+      { id: 1, rider: { username: 'RiderOne' }, latitude: 12.9716, longitude: 77.5946, speed_kmh: '65.0' },
+      { id: 2, rider: { username: 'TrailBlazer' }, latitude: 12.2958, longitude: 76.6394, speed_kmh: '52.4' },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Western Ghats Monsoon Run',
+    description: 'Chikmagalur misty peaks and tea estate trail',
+    start_date: '2026-09-10',
+    invite_code: 'RIDE-GHATS2',
+    is_active: true,
+    member_count: 5,
+    creator: { id: 102, username: 'GhatsExplorer' },
+    members: [
+      { id: 3, rider: { username: 'AdventureRider' }, latitude: 13.3161, longitude: 75.772, speed_kmh: '48.2' },
+    ],
+  },
+];
 
 const getLocalStore = (key, initial) => {
   try {
@@ -113,6 +178,11 @@ const getLocalStore = (key, initial) => {
       return initial;
     }
     const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(initial) && initial.length > 0) {
+      localStorage.setItem(key, JSON.stringify(initial));
+      return initial;
+    }
     return Array.isArray(parsed) ? parsed : initial;
   } catch {
     return initial;
