@@ -6,6 +6,7 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": ".\\.venv\\Scripts\\python.exe backend/manage.py runserver 0.0.0.0:8000",
     "build": "cd frontend && npm install && npm run build",
+    "deploy:firebase": "cd frontend && npm run build && npx firebase-tools deploy",
     "preview": "npm --prefix frontend run preview"
   }
 }
