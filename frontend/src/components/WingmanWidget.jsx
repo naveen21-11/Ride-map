@@ -76,19 +76,19 @@ export default function WingmanWidget() {
 
     return (
         <>
-            {/* Floating Action Trigger Button (Bottom-Right) */}
-            <div className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-50">
+            {/* Floating Action Trigger Button (Bottom-Right, stacked above mobile Speed Dial FAB) */}
+            <div className="fixed bottom-36 right-4 lg:bottom-6 lg:right-6 z-50">
                 {!isOpen && (
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-emerald-primary text-white font-bold shadow-2xl shadow-emerald-950/60 hover:bg-emerald-600 active:scale-95 transition-all duration-300 border border-emerald-400/40"
+                        className="group relative flex items-center gap-2 px-3 py-2.5 sm:px-4 sm:py-3 rounded-full bg-emerald-primary text-white font-bold shadow-2xl shadow-emerald-950/60 hover:bg-emerald-600 active:scale-95 transition-all duration-300 border border-emerald-400/40"
                     >
-                        <span className="relative flex h-3 w-3">
+                        <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-white"></span>
                         </span>
                         <Bot className="w-5 h-5 animate-pulse" />
-                        <span className="hidden sm:inline text-xs tracking-wider uppercase">Speed-Sunderam</span>
+                        <span className="text-[11px] sm:text-xs tracking-wider uppercase font-extrabold">Speed-Sunderam</span>
                     </button>
                 )}
             </div>
