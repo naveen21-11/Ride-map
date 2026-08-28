@@ -7,14 +7,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { setBackgroundImage as saveBackgroundImage, updateProfile } from '../services/api';
 import toast from 'react-hot-toast';
+import WingmanWidget from './WingmanWidget';
 
 const NAV = [
   { to: '/', icon: Map, label: 'Travel Map' },
   { to: '/journal', icon: BookOpen, label: 'Ride Journal' },
   { to: '/rallies', icon: Flag, label: 'Group Rallies' },
-  { to: '/chat', icon: MessageCircle, label: 'Messages' },
+  { to: '/chat', icon: MessageCircle, label: 'Messages & AI' },
   { to: '/community', icon: Users, label: 'Co-Riders' },
-  { to: '/garage', icon: Wrench, label: 'Garage' },
+  { to: '/garage', icon: Wrench, label: 'Digital Garage' },
   { to: '/expenses', icon: Receipt, label: 'Expenses' },
 ];
 
@@ -118,24 +119,24 @@ export default function Layout({ children }) {
   const isRoleAdmin = user && ['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(user.role);
 
   return (
-    <div className="relative flex h-screen min-h-dvh overflow-hidden bg-dark text-gray-100">
+    <div className="relative flex h-screen min-h-dvh overflow-hidden bg-dark text-gray-100 selection:bg-emerald-primary selection:text-white">
       {/* Dynamic Background Image & Glass Backdrop */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-300 pointer-events-none"
         style={{ backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none' }}
       />
-      <div className="absolute inset-0 z-0 bg-slate-950/80 backdrop-blur-[2px] pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-slate-950/85 backdrop-blur-[2px] pointer-events-none" />
 
       {/* Desktop Permanent Sidebar (lg:flex hidden) */}
       <aside className="relative z-20 hidden lg:flex w-64 glass-card m-3 flex-col shrink-0">
         <div className="p-5 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/30">
-              <Bike className="w-6 h-6 text-emerald-primary animate-pulse" />
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-10 h-10 rounded-xl bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/40 text-emerald-primary">
+              <Bike className="w-6 h-6 animate-pulse" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-white tracking-wide">RideMap</h1>
-              <p className="text-xs text-gray-400">India Motorcycle Journal</p>
+              <p className="text-xs text-gray-400 font-medium">Motorcycle Travel Journal</p>
             </div>
           </div>
         </div>
@@ -148,7 +149,7 @@ export default function Layout({ children }) {
               end={to === '/'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${isActive
-                  ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/40 shadow-lg shadow-emerald-950/50'
+                  ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/40 shadow-lg shadow-emerald-950/50 font-bold'
                   : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`
               }
@@ -210,7 +211,7 @@ export default function Layout({ children }) {
 
       {/* Mobile Top Header (< lg) */}
       <div className="relative z-20 flex-1 flex flex-col min-w-0 h-full">
-        <header className="lg:hidden flex items-center justify-between p-3.5 glass-card m-2 mb-0 border-white/10">
+        <header className="lg:hidden flex items-center justify-between p-3.5 glass-card m-2 mb-0 border-emerald-primary/30">
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setOpen(true)}
@@ -219,11 +220,11 @@ export default function Layout({ children }) {
             >
               <Menu className="w-5 h-5 text-gray-200" />
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
               <div className="w-7 h-7 rounded-lg bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/30">
                 <Bike className="w-4 h-4 text-emerald-primary" />
               </div>
-              <span className="font-bold text-white tracking-wide text-base">RideMap</span>
+              <span className="font-bold text-white tracking-wide text-sm">RideMap</span>
             </div>
           </div>
 
@@ -242,20 +243,20 @@ export default function Layout({ children }) {
           <div className="fixed inset-0 z-50 lg:hidden flex">
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+              className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm transition-opacity"
               onClick={() => setOpen(false)}
             />
 
             {/* Slide Drawer Panel */}
-            <div className="relative z-10 w-72 max-w-[80vw] bg-slate-panel border-r border-white/10 h-full flex flex-col p-4 shadow-2xl animate-in slide-in-from-left duration-200">
+            <div className="relative z-10 w-72 max-w-[80vw] bg-slate-900 border-r border-emerald-primary/30 h-full flex flex-col p-4 shadow-2xl animate-in slide-in-from-left duration-200">
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-emerald-primary/20 flex items-center justify-center border border-emerald-primary/30">
                     <Bike className="w-5 h-5 text-emerald-primary" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-white text-base">RideMap</h2>
-                    <p className="text-[11px] text-gray-400">Mobile Navigation</p>
+                    <h2 className="font-bold text-white text-sm tracking-wide">RideMap</h2>
+                    <p className="text-[10px] text-gray-400">Motorcycle Travel Journal</p>
                   </div>
                 </div>
                 <button
@@ -275,7 +276,7 @@ export default function Layout({ children }) {
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                        ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30'
+                        ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30 font-bold'
                         : 'text-gray-300 hover:bg-white/5'
                       }`
                     }
@@ -296,7 +297,7 @@ export default function Layout({ children }) {
                 </button>
 
                 <div className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5">
-                  <div className="w-8 h-8 rounded-full bg-teal-secondary/30 border border-teal-secondary/40 flex items-center justify-center text-xs font-bold text-teal-secondary">
+                  <div className="w-8 h-8 rounded-full bg-emerald-primary/20 border border-emerald-primary/40 flex items-center justify-center text-xs font-bold text-emerald-primary">
                     {user?.username?.[0]?.toUpperCase() || 'R'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -327,13 +328,13 @@ export default function Layout({ children }) {
             <div className="flex flex-col items-end gap-2 mb-1 animate-in fade-in slide-in-from-bottom-3 duration-200">
               <button
                 onClick={() => { setFabOpen(false); navigate('/expenses'); }}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-emerald-600 text-white text-xs font-medium shadow-xl border border-emerald-400/30 active:scale-95"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-emerald-primary text-white text-xs font-medium shadow-xl border border-emerald-primary/40 active:scale-95"
               >
                 <span>💳 Add Expense</span>
               </button>
               <button
                 onClick={() => { setFabOpen(false); navigate('/rallies'); }}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-teal-600 text-white text-xs font-medium shadow-xl border border-teal-400/30 active:scale-95"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-teal-secondary text-white text-xs font-medium shadow-xl border border-teal-secondary/40 active:scale-95"
               >
                 <span>🏁 Create Rally</span>
               </button>
@@ -349,7 +350,7 @@ export default function Layout({ children }) {
             onClick={() => setFabOpen(!fabOpen)}
             className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-300 active:scale-90 border border-white/20 ${fabOpen
               ? 'bg-red-500 rotate-45 ring-4 ring-red-500/30'
-              : 'bg-emerald-primary ring-4 ring-emerald-500/30 hover:scale-105'
+              : 'bg-emerald-primary ring-4 ring-emerald-primary/40 hover:scale-105'
               }`}
           >
             <X className={`w-6 h-6 transition-transform duration-300 ${fabOpen ? '' : 'hidden'}`} />
@@ -359,7 +360,7 @@ export default function Layout({ children }) {
       </div>
 
       {/* Mobile Fixed Bottom Navigation Bar (< lg) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 flex justify-around items-center shadow-2xl">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-emerald-primary/20 px-2 py-1.5 flex justify-around items-center shadow-2xl">
         {NAV.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -367,7 +368,7 @@ export default function Layout({ children }) {
             end={to === '/'}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center py-1 px-2.5 rounded-xl min-w-[54px] min-h-[44px] transition-all duration-200 ${isActive
-                ? 'text-emerald-primary font-bold bg-emerald-primary/10 border border-emerald-primary/20 scale-105'
+                ? 'text-emerald-primary font-bold bg-emerald-primary/10 border border-emerald-primary/30 scale-105'
                 : 'text-gray-400 hover:text-gray-200'
               }`
             }
@@ -474,6 +475,9 @@ export default function Layout({ children }) {
           </div>
         </div>
       )}
+
+      {/* Global Floating Wingman AI Assistant (Bottom-Right Docked) */}
+      <WingmanWidget />
     </div>
   );
 }

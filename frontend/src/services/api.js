@@ -368,15 +368,165 @@ export const deleteRide = async (id) => {
 export const getMessages = (params) => api.get('/messages/', { params });
 export const sendMessage = (data) => api.post('/messages/', data);
 export const deleteMessage = (id) => api.delete(`/messages/${id}/`);
-export const getMotorcycles = () => api.get('/motorcycles/');
-export const createMotorcycle = (data) => api.post('/motorcycles/', data);
-export const updateMotorcycle = (id, data) => api.patch(`/motorcycles/${id}/`, data);
-export const deleteMotorcycle = (id) => api.delete(`/motorcycles/${id}/`);
-export const getExpenses = () => api.get('/expenses/');
-export const createExpense = (data) => api.post('/expenses/', data);
-export const deleteExpense = (id) => api.delete(`/expenses/${id}/`);
-export const getExpenseAnalytics = () => api.get('/expenses/analytics/');
-export const setMonthlyBudget = (monthly_budget) => api.post('/expenses/set_budget/', { monthly_budget });
+const INITIAL_MOTORCYCLES = [
+  { id: 101, make: 'Royal Enfield', model: 'Himalayan 450', year: 2024, engine_cc: 452, fuel_efficiency_kmpl: 30, color: 'Kaza Brown', is_primary: true },
+  { id: 102, make: 'KTM', model: '390 Adventure', year: 2023, engine_cc: 373, fuel_efficiency_kmpl: 28, color: 'Orange/Black', is_primary: false },
+];
+
+const INITIAL_EXPENSES = [
+  { id: 201, category: 'FUEL', amount: 850, description: 'Full Tank Petrol at Shell NH44', location: 'Bengaluru Highway', date: new Date().toISOString().split('T')[0], motorcycle_name: 'Himalayan 450' },
+  { id: 202, category: 'FOOD', amount: 320, description: 'Rider Breakfast & Filter Coffee', location: 'Nandi Hills Base', date: new Date().toISOString().split('T')[0], motorcycle_name: 'Himalayan 450' },
+  { id: 203, category: 'MAINTENANCE', amount: 450, description: 'Motul Chain Lube & Clean', location: 'Home Garage', date: new Date().toISOString().split('T')[0], motorcycle_name: 'Himalayan 450' },
+];
+
+export const getMotorcycles = async () => {
+  let localList = getLocalStore('ridemap_motorcycles', INITIAL_MOTORCYCLES);
+  try {
+    const res = await api.get('/motorcycles/');
+    const serverList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
+    if (serverList.length > 0) {
+      setLocalStore('ridemap_motorcycles', serverList);
+      return { data: serverList };
+    }
+  } catch { }
+  return { data: localList };
+};
+
+export const createMotorcycle = async (data) => {
+  let localList = getLocalStore('ridemap_motorcycles', INITIAL_MOTORCYCLES);
+  const newBike = {
+    id: Date.now(),
+    make: data.make || 'Royal Enfield',
+    model: data.model || 'Himalayan 450',
+    year: data.year || 2024,
+    engine_cc: data.engine_cc || 452,
+    fuel_efficiency_kmpl: data.fuel_efficiency_kmpl || 30,
+    color: data.color || 'Black',
+    is_primary: !!data.is_primary,
+  };
+  if (newBike.is_primary) {
+    localList = localList.map(b => ({ ...b, is_primary: false }));
+  }
+  const updatedList = [newBike, ...localList];
+  setLocalStore('ridemap_motorcycles', updatedList);
+
+  try {
+    const res = await api.post('/motorcycles/', data);
+    if (res?.data) {
+      const synced = updatedList.map((b) => (b.id === newBike.id ? res.data : b));
+      setLocalStore('ridemap_motorcycles', synced);
+      return { data: res.data };
+    }
+  } catch { }
+  return { data: newBike };
+};
+
+export const updateMotorcycle = async (id, data) => {
+  let localList = getLocalStore('ridemap_motorcycles', INITIAL_MOTORCYCLES);
+  if (data.is_primary) {
+    localList = localList.map(b => ({ ...b, is_primary: false }));
+  }
+  localList = localList.map((b) => (String(b.id) === String(id) ? { ...b, ...data } : b));
+  setLocalStore('ridemap_motorcycles', localList);
+  try {
+    return await api.patch(`/motorcycles/${id}/`, data);
+  } catch { }
+  return { data: { id, ...data } };
+};
+
+export const deleteMotorcycle = async (id) => {
+  let localList = getLocalStore('ridemap_motorcycles', INITIAL_MOTORCYCLES);
+  localList = localList.filter((b) => String(b.id) !== String(id));
+  setLocalStore('ridemap_motorcycles', localList);
+  try {
+    return await api.delete(`/motorcycles/${id}/`);
+  } catch { }
+  return { data: { success: true } };
+};
+
+export const getExpenses = async () => {
+  let localList = getLocalStore('ridemap_expenses', INITIAL_EXPENSES);
+  try {
+    const res = await api.get('/expenses/');
+    const serverList = Array.isArray(res.data?.results) ? res.data.results : Array.isArray(res.data) ? res.data : [];
+    if (serverList.length > 0) {
+      setLocalStore('ridemap_expenses', serverList);
+      return { data: serverList };
+    }
+  } catch { }
+  return { data: localList };
+};
+
+export const createExpense = async (data) => {
+  let localList = getLocalStore('ridemap_expenses', INITIAL_EXPENSES);
+  const newExp = {
+    id: Date.now(),
+    category: data.category || 'OTHER',
+    amount: parseFloat(data.amount || 0),
+    description: data.description || '',
+    location: data.location || '',
+    date: data.date || new Date().toISOString().split('T')[0],
+    motorcycle: data.motorcycle || null,
+  };
+  const updatedList = [newExp, ...localList];
+  setLocalStore('ridemap_expenses', updatedList);
+
+  try {
+    const res = await api.post('/expenses/', data);
+    if (res?.data) {
+      const synced = updatedList.map((e) => (e.id === newExp.id ? res.data : e));
+      setLocalStore('ridemap_expenses', synced);
+      return { data: res.data };
+    }
+  } catch { }
+  return { data: newExp };
+};
+
+export const deleteExpense = async (id) => {
+  let localList = getLocalStore('ridemap_expenses', INITIAL_EXPENSES);
+  localList = localList.filter((e) => String(e.id) !== String(id));
+  setLocalStore('ridemap_expenses', localList);
+  try {
+    return await api.delete(`/expenses/${id}/`);
+  } catch { }
+  return { data: { success: true } };
+};
+
+export const getExpenseAnalytics = async () => {
+  let localExpenses = getLocalStore('ridemap_expenses', INITIAL_EXPENSES);
+  let budget = parseFloat(localStorage.getItem('ridemap_monthly_budget') || '10000');
+
+  const total = localExpenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+  const by_category = {};
+  localExpenses.forEach((exp) => {
+    const cat = exp.category || 'OTHER';
+    by_category[cat] = (by_category[cat] || 0) + (parseFloat(exp.amount) || 0);
+  });
+
+  const fallbackAnalytics = {
+    total,
+    count: localExpenses.length,
+    by_category,
+    monthly_budget: budget,
+    remaining_budget: Math.max(0, budget - total),
+    percentage_used: budget > 0 ? Math.min(100, Math.round((total / budget) * 100)) : 0,
+  };
+
+  try {
+    const res = await api.get('/expenses/analytics/');
+    if (res?.data) return res;
+  } catch { }
+
+  return { data: fallbackAnalytics };
+};
+
+export const setMonthlyBudget = async (monthly_budget) => {
+  localStorage.setItem('ridemap_monthly_budget', String(monthly_budget));
+  try {
+    return await api.post('/expenses/set_budget/', { monthly_budget });
+  } catch { }
+  return { data: { monthly_budget } };
+};
 
 const INITIAL_SESSIONS = [
   {
