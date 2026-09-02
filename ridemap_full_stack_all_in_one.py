@@ -78,10 +78,11 @@ def setup_backend():
         log("Creating Python virtual environment...")
         run([python_bin, "-m", "venv", str(VENV)])
 
-    pip = str(VENV / ("Scripts" if os.name == "nt" else "bin") / "pip")
     python = str(VENV / ("Scripts" if os.name == "nt" else "bin") / "python")
+    if not os.path.exists(python):
+        python = python_bin
 
-    run([pip, "install", "-r", "requirements.txt"], cwd=BACKEND)
+    run([python, "-m", "pip", "install", "-r", "requirements.txt"], cwd=BACKEND)
     run([python, "manage.py", "makemigrations", "api"], cwd=BACKEND)
     run([python, "manage.py", "migrate"], cwd=BACKEND)
 
